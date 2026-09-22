@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-22T00:00:00Z",
+  "subject": {
+    "repository": "simplexidev/codex-toolkit",
+    "revision": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "scenarios": {
+    "total": 12,
+    "passed": 11
+  },
+  "metrics": [
+    {
+      "name": "scenario-pass-rate",
+      "value": 0.9167,
+      "unit": "ratio",
+      "direction": "higher-is-better"
+    }
+  ],
+  "provenance": {
+    "sourceRuns": 3,
+    "sanitized": true,
+    "approval": "synthetic"
+  }
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sanitized evaluation metrics for Codex Toolkit">
+    <title>Codex Toolkit Metrics</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Evaluation dashboard</p>
+        <h1>Codex Toolkit Metrics</h1>
+        <p id="status">Loading sanitized aggregate data…</p>
+      </header>
+      <section aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Latest synthetic baseline</h2>
+        <div id="summary" class="summary"></div>
+      </section>
+      <section aria-labelledby="metrics-heading">
+        <h2 id="metrics-heading">Metrics</h2>
+        <div id="metrics" class="metrics"></div>
+      </section>
+      <noscript>This dashboard requires JavaScript to load its static JSON data.</noscript>
+    </main>
+    <script src="app.js" defer></script>
+  </body>
+</html>

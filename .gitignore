@@ -1,0 +1,34 @@
+# .NET build and test output
+bin/
+obj/
+TestResults/
+artifacts/
+coverage/
+*.trx
+
+# IDE and operating-system state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+
+# Raw/private evaluation material. Keep only the policy README tracked.
+data/private/*
+!data/private/README.md
+results/raw/
+results/private/
+*.raw.json
+*.transcript.json
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+secrets.json
+
+# Generated dashboard staging output (source lives in dashboard/)
+site/
+_site/

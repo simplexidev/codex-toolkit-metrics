@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "suite": "bootstrap-smoke",
+  "scenarios": [
+    {
+      "id": "structured-help",
+      "capability": "structured-output",
+      "inputClass": "synthetic",
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "json"
+      }
+    }
+  ]
+}

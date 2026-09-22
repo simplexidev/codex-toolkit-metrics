@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/public-metrics-v1.schema.json",
+  "title": "Codex Toolkit sanitized public metrics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "subject", "scenarios", "metrics", "provenance"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "revision"],
+      "properties": {
+        "repository": { "const": "simplexidev/codex-toolkit" },
+        "revision": { "type": "string", "pattern": "^[0-9a-fA-F]{7,64}$" }
+      }
+    },
+    "scenarios": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "passed"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "unit", "direction"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "value": { "type": "number" },
+          "unit": { "type": "string", "minLength": 1, "maxLength": 32 },
+          "direction": {
+            "enum": ["higher-is-better", "lower-is-better", "neutral"]
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRuns", "sanitized", "approval"],
+      "properties": {
+        "sourceRuns": { "type": "integer", "minimum": 1 },
+        "sanitized": { "const": true },
+        "approval": { "enum": ["synthetic", "reviewed"] }
+      }
+    }
+  }
+}
