@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "identity", "arm", "quality", "efficiency", "jev", "staticCost", "statistics"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
     "identity": { "$ref": "#/$defs/identity" },
     "arm": { "$ref": "#/$defs/arm" },
     "quality": { "$ref": "#/$defs/quality" },
@@ -16,6 +16,12 @@
     "staticCost": { "$ref": "#/$defs/staticCost" },
     "statistics": { "$ref": "#/$defs/statistics" }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "schemaVersion": { "const": "1.1.0" } }, "required": ["schemaVersion"] },
+      "then": { "properties": { "quality": { "required": ["invokedTools", "contextIsolation"] } } }
+    }
+  ],
   "$defs": {
     "nonEmptyString": {
       "type": "string",
@@ -148,6 +154,7 @@
         "semanticRubric": { "$ref": "#/$defs/numericMetric" },
         "activation": { "$ref": "#/$defs/routingQuality" },
         "delegation": { "$ref": "#/$defs/routingQuality" },
+        "invokedTools": { "$ref": "#/$defs/routingQuality" },
         "nestedDelegation": {
           "type": "object",
           "additionalProperties": false,
@@ -157,6 +164,7 @@
             "correctness": { "$ref": "#/$defs/numericMetric" }
           }
         },
+        "contextIsolation": { "$ref": "#/$defs/gateOutcome" },
         "finalQualityGate": { "$ref": "#/$defs/gateOutcome" }
       }
     },

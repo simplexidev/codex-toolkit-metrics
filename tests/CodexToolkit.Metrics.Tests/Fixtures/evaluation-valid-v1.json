@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "identity": {
     "scenario": "structured-help",
     "capability": "structured-output",
@@ -41,10 +41,16 @@
       "false": { "value": 0, "unit": "count", "kind": "measured", "method": "expected delegation comparison" },
       "missed": { "value": 0, "unit": "count", "kind": "measured", "method": "expected delegation comparison" }
     },
+    "invokedTools": {
+      "correctness": { "value": 1, "unit": "ratio", "kind": "measured", "method": "expected tool comparison" },
+      "false": { "value": 0, "unit": "count", "kind": "measured", "method": "expected tool comparison" },
+      "missed": { "value": 0, "unit": "count", "kind": "measured", "method": "expected tool comparison" }
+    },
     "nestedDelegation": {
       "outcome": "not-applicable",
       "correctness": { "value": null, "unit": "ratio", "kind": "unavailable", "method": "scenario has no nested delegation" }
     },
+    "contextIsolation": "pass",
     "finalQualityGate": "pass"
   },
   "efficiency": {

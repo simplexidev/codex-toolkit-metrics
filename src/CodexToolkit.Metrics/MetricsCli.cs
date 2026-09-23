@@ -8,6 +8,11 @@ public static class MetricsCli
         TextWriter error,
         CancellationToken cancellationToken = default)
     {
+        if (args.Length >= 2 && args[0] == "measure-static")
+        {
+            return await MeasureStaticAsync(args, output, error, cancellationToken);
+        }
+
         if (args.Length >= 2 && args[0] == "run")
         {
             return await RunEvaluationAsync(args, output, error, cancellationToken);
@@ -83,7 +88,56 @@ public static class MetricsCli
         await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
         await output.WriteLineAsync("  dashboard-check <dashboard-directory>");
+        await output.WriteLineAsync("  measure-static <toolkit-directory> [--output <report.json>] [--public-output <aggregate.json>]");
         return args.Length == 0 || (args.Length == 1 && args[0] is "help" or "--help" or "-h") ? 0 : 2;
+    }
+
+    private static async Task<int> MeasureStaticAsync(
+        string[] args,
+        TextWriter output,
+        TextWriter error,
+        CancellationToken cancellationToken)
+    {
+        string? reportPath = null;
+        string? publicPath = null;
+        for (var index = 2; index < args.Length; index++)
+        {
+            if (args[index] is "--output" or "--public-output" && index + 1 < args.Length)
+            {
+                if (args[index] == "--output") reportPath = args[++index];
+                else publicPath = args[++index];
+            }
+            else
+            {
+                await error.WriteLineAsync($"Unknown or incomplete measure-static option: {args[index]}");
+                return 2;
+            }
+        }
+
+        try
+        {
+            var report = StaticCostAnalyzer.Analyze(args[1]);
+            var json = System.Text.Json.JsonSerializer.Serialize(report, EvaluationRecordJson.Options);
+            if (reportPath is null) await output.WriteLineAsync(json);
+            else await WriteAsync(reportPath, json, cancellationToken);
+            if (publicPath is not null)
+            {
+                await WriteAsync(publicPath, StaticCostAnalyzer.PublicAggregate(report, DateTimeOffset.UtcNow), cancellationToken);
+            }
+            return 0;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"Static measurement failed: {exception.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task WriteAsync(string path, string contents, CancellationToken cancellationToken)
+    {
+        var fullPath = Path.GetFullPath(path);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        await File.WriteAllTextAsync(fullPath, contents + Environment.NewLine, cancellationToken);
     }
 
     private static async Task<int> RunEvaluationAsync(

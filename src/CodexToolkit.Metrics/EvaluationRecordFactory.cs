@@ -55,13 +55,12 @@ public static class EvaluationRecordFactory
                 SemanticRubric = trial.Judgment.Score is { } score
                     ? Metric(score, "ratio", MeasurementKind.Measured, trial.Judgment.Method)
                     : Unavailable("ratio", trial.Judgment.Method),
-                Activation = Routing(scenario.Expected.ActivatedSkills, trial.Execution.Observations.ActivatedSkills),
-                Delegation = Routing(scenario.Expected.DelegatedAgents, trial.Execution.Observations.DelegatedAgents),
-                NestedDelegation = new NestedDelegationMetrics
-                {
-                    Outcome = GateOutcome.NotApplicable,
-                    Correctness = Unavailable("ratio", "nested delegation not requested")
-                },
+                Activation = Routing(scenario.Expected.ActivatedSkills, trial.Execution.Observations.ActivatedSkills, scenario.Expected.ActivationCase),
+                Delegation = Routing(scenario.Expected.DelegatedAgents, trial.Execution.Observations.DelegatedAgents, scenario.Expected.DelegationCase),
+                InvokedTools = Routing(scenario.Expected.InvokedTools, trial.Execution.Observations.InvokedTools,
+                    scenario.Expected.InvokedTools.Count == 0 ? RoutingCase.Unspecified : RoutingCase.ShouldActivate),
+                NestedDelegation = NestedDelegation(scenario.Expected.NestedDelegation, trial.Execution.Observations.MaximumDelegationDepth),
+                ContextIsolation = Compare(scenario.Expected.ContextIsolation, trial.Execution.Observations.ContextIsolated),
                 FinalQualityGate = finalOutcome
             },
             Efficiency = new EfficiencyMetrics
@@ -101,17 +100,38 @@ public static class EvaluationRecordFactory
         Outcome = outcome
     };
 
-    private static RoutingQualityMetrics Routing(IReadOnlyList<string> expected, IReadOnlyList<string> observed)
+    private static RoutingQualityMetrics Routing(
+        IReadOnlyList<string> expected,
+        IReadOnlyList<string> observed,
+        RoutingCase routingCase)
     {
-        if (expected.Count == 0)
+        if (routingCase == RoutingCase.Ambiguous)
         {
             return new RoutingQualityMetrics
             {
-                Correctness = Unavailable("ratio", "no routing expectation"),
-                False = Metric(observed.Count, "count", MeasurementKind.Measured, "structured executor observations"),
-                Missed = Metric(0, "count", MeasurementKind.Measured, "structured executor observations")
+                Correctness = Unavailable("ratio", "ambiguous routing case is observed but not scored"),
+                False = Unavailable("count", "ambiguous routing case is observed but not scored"),
+                Missed = Unavailable("count", "ambiguous routing case is observed but not scored")
             };
         }
+
+        if (routingCase == RoutingCase.ShouldNotActivate)
+        {
+            return new RoutingQualityMetrics
+            {
+                Correctness = Metric(observed.Count == 0 ? 1 : 0, "ratio", MeasurementKind.Derived, "negative routing expectation"),
+                False = Metric(observed.Count, "count", MeasurementKind.Measured, "structured executor observations"),
+                Missed = Metric(0, "count", MeasurementKind.Derived, "negative routing expectation")
+            };
+        }
+
+        if (expected.Count == 0)
+            return new RoutingQualityMetrics
+            {
+                Correctness = Unavailable("ratio", "no routing expectation"),
+                False = Unavailable("count", "no routing expectation"),
+                Missed = Unavailable("count", "no routing expectation")
+            };
 
         var matches = expected.Intersect(observed, StringComparer.Ordinal).Count();
         return new RoutingQualityMetrics
@@ -121,6 +141,32 @@ public static class EvaluationRecordFactory
             Missed = Metric(expected.Except(observed, StringComparer.Ordinal).Count(), "count", MeasurementKind.Derived, "expected/observed set difference")
         };
     }
+
+    private static NestedDelegationMetrics NestedDelegation(bool? expected, int? observedDepth)
+    {
+        if (expected is null)
+            return new NestedDelegationMetrics
+            {
+                Outcome = GateOutcome.NotApplicable,
+                Correctness = Unavailable("ratio", "nested delegation not requested")
+            };
+        if (observedDepth is null)
+            return new NestedDelegationMetrics
+            {
+                Outcome = GateOutcome.Fail,
+                Correctness = Unavailable("ratio", "executor did not expose delegation depth")
+            };
+        var observed = observedDepth > 1;
+        return new NestedDelegationMetrics
+        {
+            Outcome = observed == expected ? GateOutcome.Pass : GateOutcome.Fail,
+            Correctness = Metric(observed == expected ? 1 : 0, "ratio", MeasurementKind.Derived, "expected nested delegation compared with structured maximum depth")
+        };
+    }
+
+    private static GateOutcome Compare(bool? expected, bool? observed) => expected is null
+        ? GateOutcome.NotApplicable
+        : observed is null || observed != expected ? GateOutcome.Fail : GateOutcome.Pass;
 
     private static JevIntelligenceMetrics EmptyJev() => new()
     {
@@ -136,36 +182,50 @@ public static class EvaluationRecordFactory
         ContextAvoided = Unavailable("tokens", "full JEV judging deferred")
     };
 
-    private static StaticCostMetrics StaticCost(EvaluationArmDefinition arm, string planDirectory) => new()
+    private static StaticCostMetrics StaticCost(EvaluationArmDefinition arm, string planDirectory)
     {
-        Skill = new SkillStaticCost
+        var skills = ResolveSkillDirectories(arm.SkillPaths, planDirectory).Select(StaticCostAnalyzer.AnalyzeSkill).ToArray();
+        var agents = ResolveAgentFiles(arm.AgentPaths, planDirectory).Select(StaticCostAnalyzer.AnalyzeAgent).ToArray();
+        return new StaticCostMetrics
         {
-            Trigger = Unavailable("tokens", "trigger metadata measurement deferred"),
-            SkillFile = FileBytes(arm.SkillPaths, planDirectory, "configured skill files"),
-            LazyReferences = Unavailable("tokens", "lazy-reference classification deferred"),
-            AlwaysVisible = Unavailable("tokens", "visibility classification deferred"),
-            ActivationVisible = Unavailable("tokens", "visibility classification deferred")
-        },
-        Agent = new AgentStaticCost
-        {
-            Configuration = FileBytes(arm.AgentPaths, planDirectory, "configured agent files"),
-            Instructions = Unavailable("tokens", "instruction classification deferred")
-        }
-    };
-
-    private static NumericMetric FileBytes(IReadOnlyList<string> paths, string planDirectory, string method)
-    {
-        long total = 0;
-        foreach (var configuredPath in paths)
-        {
-            var path = CompatibilityHasher.Resolve(planDirectory, configuredPath);
-            total += File.Exists(path)
-                ? new FileInfo(path).Length
-                : CompatibilityHasher.EnumerateRegularFiles(path).Sum(file => new FileInfo(file).Length);
-        }
-
-        return Metric(total, "bytes", MeasurementKind.Measured, method);
+            Skill = new SkillStaticCost
+            {
+                Trigger = Estimated(skills.Select(item => item.Trigger), "skill frontmatter"),
+                SkillFile = Estimated(skills.Select(item => item.SkillFile), "SKILL.md"),
+                LazyReferences = Estimated(skills.Select(item => item.LazyReferences), "files beneath references/"),
+                AlwaysVisible = Estimated(skills.Select(item => item.AlwaysVisible), "skill name and description routing surface"),
+                ActivationVisible = Estimated(skills.Select(item => item.ActivationVisible), "activated SKILL.md")
+            },
+            Agent = new AgentStaticCost
+            {
+                Configuration = Estimated(agents.Select(item => item.Configuration), "custom-agent TOML excluding developer_instructions"),
+                Instructions = Estimated(agents.Select(item => item.Instructions), "custom-agent developer_instructions")
+            }
+        };
     }
+
+    private static NumericMetric Estimated(IEnumerable<TextCost> costs, string scope)
+    {
+        var array = costs.ToArray();
+        return array.Length == 0
+            ? Unavailable("estimated-tokens", $"no configured {scope}")
+            : Metric(array.Sum(item => item.Tokens), "estimated-tokens", MeasurementKind.Estimated,
+                $"{scope}; {StaticCostAnalyzer.TokenMethod}");
+    }
+
+    private static IEnumerable<string> ResolveSkillDirectories(IReadOnlyList<string> paths, string planDirectory) =>
+        paths.Select(path => CompatibilityHasher.Resolve(planDirectory, path)).SelectMany(path =>
+            File.Exists(Path.Combine(path, "SKILL.md"))
+                ? [path]
+                : Directory.Exists(path)
+                    ? Directory.GetFiles(path, "SKILL.md", SearchOption.AllDirectories).Select(file => Path.GetDirectoryName(file)!)
+                    : []);
+
+    private static IEnumerable<string> ResolveAgentFiles(IReadOnlyList<string> paths, string planDirectory) =>
+        paths.Select(path => CompatibilityHasher.Resolve(planDirectory, path)).SelectMany(path =>
+            File.Exists(path) && Path.GetExtension(path).Equals(".toml", StringComparison.OrdinalIgnoreCase)
+                ? [path]
+                : Directory.Exists(path) ? Directory.GetFiles(path, "*.toml", SearchOption.AllDirectories) : []);
 
     private static IReadOnlyList<StatisticalSummary> Summaries(IReadOnlyList<RawTrialResult> trials) =>
     [

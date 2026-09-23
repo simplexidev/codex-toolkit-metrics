@@ -18,6 +18,11 @@ public static class PublicMetricsValidator
         "higher-is-better", "lower-is-better", "neutral"
     };
 
+    private static readonly HashSet<string> MeasurementKinds = new(StringComparer.Ordinal)
+    {
+        "measured", "derived", "estimated"
+    };
+
     public static async Task<ValidationResult> ValidateFileAsync(
         string path,
         CancellationToken cancellationToken = default)
@@ -139,8 +144,29 @@ public static class PublicMetricsValidator
                 unit => unit.Length is > 0 and <= 32, "must contain 1-32 characters", prefix);
             RequireString(metric, "direction", errors,
                 direction => Directions.Contains(direction), "has an unsupported value", prefix);
+            OptionalString(metric, "kind", errors,
+                kind => MeasurementKinds.Contains(kind), "has an unsupported value", prefix);
+            OptionalString(metric, "method", errors,
+                method => method.Length is > 0 and <= 200, "must contain 1-200 characters", prefix);
             index++;
         }
+    }
+
+    private static void OptionalString(
+        JsonElement parent,
+        string name,
+        List<string> errors,
+        Func<string, bool> predicate,
+        string predicateMessage,
+        string prefix)
+    {
+        if (!parent.TryGetProperty(name, out var value)) return;
+        if (value.ValueKind != JsonValueKind.String)
+        {
+            errors.Add($"{prefix}.{name} must be a string.");
+            return;
+        }
+        if (!predicate(value.GetString()!)) errors.Add($"{prefix}.{name} {predicateMessage}.");
     }
 
     private static JsonElement? RequireObject(JsonElement parent, string name, List<string> errors)

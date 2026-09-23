@@ -4,7 +4,7 @@ namespace CodexToolkit.Metrics;
 
 public sealed record EvaluationRecord
 {
-    public const string CurrentSchemaVersion = "1.0.0";
+    public const string CurrentSchemaVersion = "1.1.0";
 
     public required string SchemaVersion { get; init; }
 
@@ -99,7 +99,11 @@ public sealed record QualityMetrics
 
     public required RoutingQualityMetrics Delegation { get; init; }
 
+    public RoutingQualityMetrics? InvokedTools { get; init; }
+
     public required NestedDelegationMetrics NestedDelegation { get; init; }
+
+    public GateOutcome? ContextIsolation { get; init; }
 
     public required GateOutcome FinalQualityGate { get; init; }
 }

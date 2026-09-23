@@ -62,6 +62,30 @@ path records a deferred/not-applicable semantic result, and the GPT path invokes
 bounded OpenAI judge that must return a score in `[0,1]`. Full JEV judging is intentionally
 deferred.
 
+## Static cost and routing measurement
+
+The deterministic analyzer inventories the sibling toolkit's skill frontmatter, complete
+`SKILL.md` files, lazy Markdown references, maximum possible load, always-visible routing
+surface, activation-visible content, sibling trigger overlap, and custom-agent
+configuration/instructions. Its detailed local report records exact UTF-8 bytes and
+characters. Token counts use a GPT-family `ceil(UTF-8 bytes / 4)` approximation because no
+model tokenizer is available in the keyless evaluator; every such value is labeled
+`estimated` with the method.
+
+```console
+dotnet run --project src/CodexToolkit.Metrics -- measure-static ../codex-toolkit
+dotnet run --project src/CodexToolkit.Metrics -- measure-static ../codex-toolkit \
+  --output /private/path/static-report.json \
+  --public-output data/public/static-cost-routing.json
+```
+
+Treat the detailed report as local evaluator output. `--public-output` emits only
+schema-valid sanitized aggregates for the dashboard. The versioned
+`routing-delegation-v1.json` plan distinguishes should-activate, should-not-activate and
+ambiguous routing. Expected/observed sets calculate false and missed activation or
+delegation; structured observations also measure invoked tools, maximum delegation depth
+and context isolation. Ambiguous cases are observed but left unscored.
+
 ## Develop
 
 The repository requires the .NET SDK selected by `global.json`.
@@ -72,6 +96,7 @@ dotnet test CodexToolkit.Metrics.slnx
 dotnet run --project src/CodexToolkit.Metrics -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
 dotnet run --project src/CodexToolkit.Metrics -- validate-public data/public/example-summary.json
 dotnet run --project src/CodexToolkit.Metrics -- dashboard-check dashboard
+dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/routing-delegation-v1.json
 ```
 
 The future GitHub Pages target is

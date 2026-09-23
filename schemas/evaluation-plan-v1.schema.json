@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "suite", "fixtureRoot", "repetitions", "timeoutSeconds", "executor", "judge", "provenance", "arms", "scenarios"],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": { "enum": ["1.0", "1.1"] },
     "suite": { "$ref": "#/$defs/name" },
     "fixtureRoot": { "$ref": "#/$defs/name" },
     "repetitions": { "type": "integer", "minimum": 1 },
@@ -95,7 +95,12 @@
                 }
               },
               "activatedSkills": { "$ref": "#/$defs/paths" },
-              "delegatedAgents": { "$ref": "#/$defs/paths" }
+              "delegatedAgents": { "$ref": "#/$defs/paths" },
+              "invokedTools": { "$ref": "#/$defs/paths" },
+              "activationCase": { "$ref": "#/$defs/routingCase" },
+              "delegationCase": { "$ref": "#/$defs/routingCase" },
+              "nestedDelegation": { "type": "boolean" },
+              "contextIsolation": { "type": "boolean" }
             }
           }
         },
@@ -109,6 +114,7 @@
   "$defs": {
     "name": { "type": "string", "minLength": 1 },
     "paths": { "type": "array", "items": { "$ref": "#/$defs/name" } },
+    "routingCase": { "enum": ["unspecified", "should-activate", "should-not-activate", "ambiguous"] },
     "provider": {
       "type": "object",
       "additionalProperties": false,

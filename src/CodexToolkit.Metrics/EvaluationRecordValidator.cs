@@ -39,9 +39,9 @@ public static class EvaluationRecordValidator
     {
         var errors = new List<string>();
 
-        if (record.SchemaVersion != EvaluationRecord.CurrentSchemaVersion)
+        if (record.SchemaVersion is not ("1.0.0" or EvaluationRecord.CurrentSchemaVersion))
         {
-            errors.Add($"$.schemaVersion must equal '{EvaluationRecord.CurrentSchemaVersion}'.");
+            errors.Add($"$.schemaVersion must equal '1.0.0' or '{EvaluationRecord.CurrentSchemaVersion}'.");
         }
 
         ValidateIdentity(record.Identity, errors);
@@ -50,7 +50,7 @@ public static class EvaluationRecordValidator
             errors.Add("$.arm is required.");
         }
 
-        ValidateQuality(record.Quality, errors);
+        ValidateQuality(record.Quality, record.SchemaVersion, errors);
         ValidateMetrics(record.Efficiency, "$.efficiency", errors);
         ValidateMetrics(record.Jev, "$.jev", errors);
         ValidateMetrics(record.StaticCost, "$.staticCost", errors);
@@ -137,7 +137,7 @@ public static class EvaluationRecordValidator
         }
     }
 
-    private static void ValidateQuality(QualityMetrics? quality, List<string> errors)
+    private static void ValidateQuality(QualityMetrics? quality, string schemaVersion, List<string> errors)
     {
         if (quality is null)
         {
@@ -146,6 +146,12 @@ public static class EvaluationRecordValidator
         }
 
         ValidateMetrics(quality, "$.quality", errors);
+
+        if (schemaVersion == EvaluationRecord.CurrentSchemaVersion)
+        {
+            if (quality.InvokedTools is null) errors.Add("$.quality.invokedTools is required.");
+            if (quality.ContextIsolation is null) errors.Add("$.quality.contextIsolation is required.");
+        }
 
         ValidateAssertionCounts(quality.DeterministicAssertions, "$.quality.deterministicAssertions", errors);
         ValidateAssertionCounts(quality.SafetyAssertions, "$.quality.safetyAssertions", errors);
@@ -233,7 +239,8 @@ public static class EvaluationRecordValidator
             {
                 ValidateMetrics(propertyValue, propertyPath, errors);
             }
-            else if (propertyValue is null && property.PropertyType != typeof(string))
+            else if (propertyValue is null && propertyPath is not ("$.quality.invokedTools" or "$.quality.contextIsolation") &&
+                     property.PropertyType != typeof(string))
             {
                 errors.Add($"{propertyPath} is required.");
             }

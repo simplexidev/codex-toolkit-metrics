@@ -39,7 +39,9 @@
           "unit": { "type": "string", "minLength": 1, "maxLength": 32 },
           "direction": {
             "enum": ["higher-is-better", "lower-is-better", "neutral"]
-          }
+          },
+          "kind": { "enum": ["measured", "derived", "estimated"] },
+          "method": { "type": "string", "minLength": 1, "maxLength": 200 }
         }
       }
     },
