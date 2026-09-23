@@ -1,0 +1,4 @@
+2026-09-20T10:00:00Z INFO request=alpha operation=divide numerator=12 denominator=3 status=200
+2026-09-20T10:00:01Z WARN request=beta operation=divide denominator=0 status=500 exception=DivideByZeroException
+2026-09-20T10:00:02Z INFO request=gamma operation=add left=2 right=3 status=200
+

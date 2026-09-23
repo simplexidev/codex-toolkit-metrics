@@ -32,10 +32,21 @@ const metricCatalog = {
   "delegation-rate": { label: "Delegation rate", view: "routing-delegation" }
 };
 
+const baselineMetricCatalog = {
+  "dotnet-vanilla-pass-rate": "Vanilla .NET pass rate",
+  "dotnet-upstream-pass-rate": "Upstream .NET pass rate",
+  "agents-builtin-pass-rate": "Built-in agent pass rate",
+  "agents-current-custom-pass-rate": "Current custom agent pass rate"
+};
+for (const [name, label] of Object.entries(baselineMetricCatalog)) {
+  metricCatalog[name] = { label, view: "pre-optimization" };
+}
+
 const viewCopy = {
   overview: ["Overview", "The newest available value for every published measurement."],
   skills: ["Skills", "Activation quality and the size of the runtime skill surface."],
   agents: ["Agents", "Delegation outcomes, context isolation, and agent inventory."],
+  "pre-optimization": ["Pre-optimization", "Reusable skill and agent baselines captured before the v2 optimization phases."],
   models: ["Models", "Policy compliance for OpenAI/GPT-only execution and judging."],
   "token-efficiency": ["Token Efficiency", "Context paid up front, on activation, and at maximum load."],
   jev: ["JEV", "Coverage of bounded semantic judgment; unavailable measurements remain explicit."],
@@ -78,7 +89,14 @@ function formatMetric(metric) {
 }
 
 function metricLabel(name) {
-  return metricCatalog[name]?.label ?? name.replaceAll("-", " ");
+  if (metricCatalog[name]?.label) return metricCatalog[name].label;
+  const baselineArm = ["dotnet-vanilla", "dotnet-upstream", "agents-builtin", "agents-current-custom"]
+    .find(prefix => name.startsWith(`${prefix}-`));
+  if (baselineArm) {
+    const arm = baselineArm.replaceAll("-", " ");
+    return `${arm} · ${name.slice(baselineArm.length + 1).replaceAll("-", " ")}`;
+  }
+  return name.replaceAll("-", " ");
 }
 
 function metricCard(name, metric) {
@@ -172,6 +190,8 @@ function renderView(view) {
   }
   const names = view === "overview"
     ? [...latestMetrics.keys()]
+    : view === "pre-optimization"
+      ? [...latestMetrics.keys()].filter(name => name.startsWith("dotnet-") || name.startsWith("agents-"))
     : Object.entries(metricCatalog).filter(([, definition]) => definition.view === view).map(([name]) => name);
   const grid = element("div", "metrics-grid");
   names.forEach(name => grid.append(metricCard(name, latestMetrics.get(name))));

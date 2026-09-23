@@ -18,6 +18,11 @@ public static class MetricsCli
             return await RunEvaluationAsync(args, output, error, cancellationToken);
         }
 
+        if (args.Length >= 4 && args[0] == "aggregate-baseline")
+        {
+            return await AggregateBaselineAsync(args, output, error, cancellationToken);
+        }
+
         if (args.Length == 2 && args[0] == "validate-plan")
         {
             var loaded = await EvaluationPlanLoader.LoadAsync(args[1], cancellationToken);
@@ -97,6 +102,7 @@ public static class MetricsCli
 
         await output.WriteLineAsync("Codex Toolkit Metrics");
         await output.WriteLineAsync("  run <plan.json> [--raw-dir <directory>] [--reuse-baseline]");
+        await output.WriteLineAsync("  aggregate-baseline <raw-directory> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
         await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
@@ -104,6 +110,48 @@ public static class MetricsCli
         await output.WriteLineAsync("  publish-pages <dashboard-directory> <public-data-directory> <output-directory>");
         await output.WriteLineAsync("  measure-static <toolkit-directory> [--output <report.json>] [--public-output <aggregate.json>]");
         return args.Length == 0 || (args.Length == 1 && args[0] is "help" or "--help" or "-h") ? 0 : 2;
+    }
+
+    private static async Task<int> AggregateBaselineAsync(
+        string[] args,
+        TextWriter output,
+        TextWriter error,
+        CancellationToken cancellationToken)
+    {
+        var generatedAt = DateTimeOffset.UtcNow;
+        for (var index = 4; index < args.Length; index++)
+        {
+            if (args[index] == "--generated-at" && index + 1 < args.Length &&
+                DateTimeOffset.TryParse(args[++index], out var parsed))
+            {
+                generatedAt = parsed;
+            }
+            else
+            {
+                await error.WriteLineAsync($"Unknown, incomplete, or invalid aggregate-baseline option: {args[index]}");
+                return 2;
+            }
+        }
+
+        try
+        {
+            var json = await PreOptimizationBaselineAggregator.AggregateAsync(
+                args[1], args[3], generatedAt, cancellationToken);
+            await WriteAsync(args[2], json, cancellationToken);
+            var validation = await PublicMetricsValidator.ValidateFileAsync(args[2], cancellationToken);
+            if (!validation.IsValid)
+            {
+                foreach (var validationError in validation.Errors) await error.WriteLineAsync(validationError);
+                return 1;
+            }
+            await output.WriteLineAsync($"Sanitized reviewed baseline written to: {Path.GetFullPath(args[2])}");
+            return 0;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"Baseline aggregation failed: {exception.Message}");
+            return 1;
+        }
     }
 
     private static async Task<int> MeasureStaticAsync(

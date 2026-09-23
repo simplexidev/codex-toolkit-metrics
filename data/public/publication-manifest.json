@@ -3,6 +3,7 @@
   "artifacts": [
     "history-baseline.json",
     "example-summary.json",
-    "static-cost-routing.json"
+    "static-cost-routing.json",
+    "pre-optimization-baseline.json"
   ]
 }

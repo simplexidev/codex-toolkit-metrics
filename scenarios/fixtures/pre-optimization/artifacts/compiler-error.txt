@@ -1,0 +1,2 @@
+src/Calculator/Calculator.cs(7,72): error CS0029: Cannot implicitly convert type 'string' to 'int' [src/Calculator/Calculator.csproj]
+

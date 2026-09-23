@@ -18,3 +18,11 @@ correct/false/missed agent delegation, nested delegation, invoked tools and cont
 isolation. Correct versus missed outcomes are derived from expected/observed sets;
 negative cases count any observed activation or delegation as false. Replace provenance
 placeholders and executor version before recording a real run.
+
+The `pre-optimization-dotnet-v1.json` and `pre-optimization-agents-v1.json` plans capture
+the reusable v2 baseline before major toolkit optimization. They use one repetition per
+arm: VANILLA versus the pinned current `dotnet/skills` snapshot, and built-in/no-custom
+versus the current custom reviewer. The upstream checkout remains local at the relative
+path declared by the plan; it is not vendored. Run with `--reuse-baseline` so exact
+compatibility matches are reused and changed inputs are rerun. The public synthetic
+fixture contains no private source; raw executor events and responses remain private.

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.1",
+  "suite": "pre-optimization-agents-v1",
+  "fixtureRoot": "fixtures/pre-optimization",
+  "repetitions": 1,
+  "timeoutSeconds": 300,
+  "executor": {
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "reasoning": "low",
+    "version": "codex-cli-0.155.1"
+  },
+  "judge": { "path": "deterministic" },
+  "provenance": {
+    "toolkit": { "sha": "771f6513b938aceca2f88c59cbd9a3bfbcb39ff9", "version": "v2-pre-optimization" },
+    "metrics": { "sha": "2f71672", "version": "pre-optimization-baseline-phase" },
+    "upstream": { "sha": null, "path": null }
+  },
+  "arms": [
+    {
+      "id": "agents-builtin",
+      "comparison": "VANILLA",
+      "customization": "BUILTIN-or-NO-CUSTOM"
+    },
+    {
+      "id": "agents-current-custom",
+      "comparison": "VANILLA",
+      "customization": "PREVIOUS-CUSTOM",
+      "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "focused-review-agent",
+      "capability": "focused-review",
+      "prompt": "Read-only task. Perform an independent review of artifacts/focused-review.patch. If an appropriate custom reviewer is available, delegate this bounded review; otherwise review directly. Report concrete behavior findings, then end with SCENARIO: focused-review-agent and mention denominator == 0. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: focused-review-agent", "denominator == 0"] }
+    },
+    {
+      "id": "ci-agent-boundary",
+      "capability": "git-github-ci",
+      "prompt": "Read-only task. Inspect .github/workflows/ci.yml for reproducibility risk. Do not delegate this routine inspection. End with SCENARIO: ci-agent-boundary and mention global.json. Do not modify files or contact GitHub.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: ci-agent-boundary", "global.json"] }
+    },
+    {
+      "id": "general-repo-agent-boundary",
+      "capability": "general-repository",
+      "prompt": "Read-only task. Summarize the repository's highest-evidence next action. Do not delegate this small task. End with SCENARIO: general-repo-agent-boundary and mention DivideByZeroException. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: general-repo-agent-boundary", "DivideByZeroException"] }
+    }
+  ]
+}

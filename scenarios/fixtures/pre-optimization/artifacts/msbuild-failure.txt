@@ -1,0 +1,5 @@
+MSB4018: The "GenerateManifest" task failed unexpectedly.
+System.IO.IOException: The process cannot access the file 'obj/Debug/net10.0/app.manifest' because it is being used by another process.
+  at Microsoft.Build.Tasks.GenerateManifestBase.Execute()
+Build FAILED. 0 Warning(s) 1 Error(s)
+

@@ -1,0 +1,11 @@
+diff --git a/src/Calculator/Calculator.cs b/src/Calculator/Calculator.cs
+index 1111111..2222222 100644
+--- a/src/Calculator/Calculator.cs
++++ b/src/Calculator/Calculator.cs
+@@ -4,5 +4,5 @@ public static class Calculator
+     public static int Add(int left, int right) => left + right;
+ 
+-    public static int Divide(int numerator, int denominator) => numerator / denominator;
++    public static int Divide(int numerator, int denominator) => denominator == 0 ? 0 : numerator / denominator;
+ }
+
