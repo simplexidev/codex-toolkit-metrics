@@ -16,12 +16,14 @@ dependency. Human-facing methodology and usage documentation belongs in
 - `schemas/` — stable schemas for committed and published data.
 - `data/public/` — reviewed, sanitized aggregate history suitable for publication.
 - `data/private/` — ignored local raw runs; never commit this directory's contents.
-- `dashboard/` — static dashboard source. Pages deployment is intentionally not enabled.
+- `dashboard/` — dependency-free static dashboard source, published through GitHub Pages.
 
 Raw prompts, responses, transcripts, private source, and logs must remain local or in
 short-lived CI artifacts. Only reviewed aggregates accepted by
 [`schemas/public-metrics-v1.schema.json`](schemas/public-metrics-v1.schema.json) may be
-committed or eventually published.
+committed or published. `data/public/publication-manifest.json` is the explicit allowlist;
+the publisher rejects unlisted JSON, raw fields, logs, secret-like content, local absolute
+paths, and malformed aggregates before creating the Pages artifact.
 
 Run-level evaluator output uses the typed C# data model and
 [`schemas/evaluation-record-v1.schema.json`](schemas/evaluation-record-v1.schema.json).
@@ -96,9 +98,10 @@ dotnet test CodexToolkit.Metrics.slnx
 dotnet run --project src/CodexToolkit.Metrics -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
 dotnet run --project src/CodexToolkit.Metrics -- validate-public data/public/example-summary.json
 dotnet run --project src/CodexToolkit.Metrics -- dashboard-check dashboard
+dotnet run --project src/CodexToolkit.Metrics -- publish-pages dashboard data/public _site
 dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/routing-delegation-v1.json
 ```
 
-The future GitHub Pages target is
-<https://simplexidev.github.io/codex-toolkit-metrics/>. This bootstrap does not publish or
-configure Pages.
+The GitHub Actions Pages deployment publishes the generated, sanitized artifact at
+<https://simplexidev.github.io/codex-toolkit-metrics/>. Dashboard code uses only relative
+paths so the site works beneath the `/codex-toolkit-metrics/` project base.

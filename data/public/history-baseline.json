@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-08-15T00:00:00Z",
+  "subject": {
+    "repository": "simplexidev/codex-toolkit",
+    "revision": "abcdef0123456789abcdef0123456789abcdef01"
+  },
+  "scenarios": {
+    "total": 10,
+    "passed": 8
+  },
+  "metrics": [
+    {
+      "name": "scenario-pass-rate",
+      "value": 0.8,
+      "unit": "ratio",
+      "direction": "higher-is-better",
+      "kind": "measured",
+      "method": "synthetic fixture scenario outcomes"
+    },
+    {
+      "name": "capability-coverage",
+      "value": 0.72,
+      "unit": "ratio",
+      "direction": "higher-is-better",
+      "kind": "derived",
+      "method": "covered capability groups divided by declared groups"
+    },
+    {
+      "name": "regression-count",
+      "value": 2,
+      "unit": "count",
+      "direction": "lower-is-better",
+      "kind": "derived",
+      "method": "synthetic comparison with the prior approved snapshot"
+    }
+  ],
+  "provenance": {
+    "sourceRuns": 2,
+    "sanitized": true,
+    "approval": "synthetic"
+  }
+}

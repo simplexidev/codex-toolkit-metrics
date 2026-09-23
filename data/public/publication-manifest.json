@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0",
+  "artifacts": [
+    "history-baseline.json",
+    "example-summary.json",
+    "static-cost-routing.json"
+  ]
+}
