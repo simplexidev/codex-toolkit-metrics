@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0",
+  "suite": "runner-smoke",
+  "fixtureRoot": "fixtures/smoke",
+  "repetitions": 2,
+  "timeoutSeconds": 120,
+  "executor": {
+    "provider": "openai",
+    "model": "gpt-5",
+    "reasoning": "low",
+    "version": "set-to-codex-cli-version"
+  },
+  "judge": { "path": "deterministic" },
+  "provenance": {
+    "toolkit": { "sha": "0000000", "version": "configure-before-run" },
+    "metrics": { "sha": "0000000", "version": "configure-before-run" },
+    "upstream": { "sha": null, "path": null }
+  },
+  "arms": [
+    {
+      "id": "vanilla",
+      "comparison": "VANILLA",
+      "customization": "BUILTIN-or-NO-CUSTOM"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "structured-help",
+      "capability": "structured-output",
+      "prompt": "Return only this JSON object with no markdown: {\"status\":\"ok\"}",
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "json",
+        "responseContains": ["\"status\":\"ok\""]
+      }
+    }
+  ]
+}
