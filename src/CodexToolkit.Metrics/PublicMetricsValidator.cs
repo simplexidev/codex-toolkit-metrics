@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace CodexToolkit.Metrics;
 
@@ -10,7 +11,8 @@ public static class PublicMetricsValidator
     private static readonly HashSet<string> SensitivePropertyNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "apiKey", "email", "localPath", "privateSource", "prompt", "raw", "request",
-        "response", "secret", "sourceText", "token", "transcript", "user"
+        "response", "secret", "sourceText", "token", "transcript", "user", "log", "logs",
+        "stderr", "stdout"
     };
 
     private static readonly HashSet<string> Directions = new(StringComparer.Ordinal)
@@ -45,6 +47,7 @@ public static class PublicMetricsValidator
             using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             ValidateRoot(document.RootElement, errors);
             FindSensitiveProperties(document.RootElement, "$", errors);
+            FindSensitiveValues(document.RootElement, "$", errors);
         }
         catch (JsonException exception)
         {
@@ -246,5 +249,73 @@ public static class PublicMetricsValidator
                 index++;
             }
         }
+    }
+
+    private static void FindSensitiveValues(JsonElement element, string path, List<string> errors)
+    {
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            foreach (var error in PublicationSafety.ValidateText(element.GetString()!, path))
+            {
+                errors.Add(error);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                FindSensitiveValues(property.Value, $"{path}.{property.Name}", errors);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            var index = 0;
+            foreach (var item in element.EnumerateArray())
+            {
+                FindSensitiveValues(item, $"{path}[{index}]", errors);
+                index++;
+            }
+        }
+    }
+}
+
+public static partial class PublicationSafety
+{
+    private static readonly string[] SecretMarkers =
+    [
+        "TYPESAFE_API_KEY", "-----BEGIN PRIVATE KEY-----", "-----BEGIN OPENSSH PRIVATE KEY-----"
+    ];
+
+    private static readonly string[] PrivateContentMarkers =
+    [
+        "raw prompt:", "private source:", "raw log:", "build log:", "transcript:"
+    ];
+
+    [GeneratedRegex(@"(?:^|[\s""'=])(?:/home/|/Users/|/tmp/|[A-Za-z]:[\\/])", RegexOptions.CultureInvariant)]
+    private static partial Regex LocalPathPattern();
+
+    [GeneratedRegex(@"(?:sk-(?:proj-)?|gh[opusu]_|github_pat_)[A-Za-z0-9_-]{12,}", RegexOptions.CultureInvariant)]
+    private static partial Regex CredentialPattern();
+
+    public static IReadOnlyList<string> ValidateText(string text, string location)
+    {
+        var errors = new List<string>();
+        if (SecretMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)) ||
+            CredentialPattern().IsMatch(text))
+        {
+            errors.Add($"{location} contains secret-like content forbidden from publication.");
+        }
+
+        if (LocalPathPattern().IsMatch(text))
+        {
+            errors.Add($"{location} contains a local absolute path forbidden from publication.");
+        }
+
+        if (PrivateContentMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase)))
+        {
+            errors.Add($"{location} contains raw or private content forbidden from publication.");
+        }
+
+        return errors;
     }
 }

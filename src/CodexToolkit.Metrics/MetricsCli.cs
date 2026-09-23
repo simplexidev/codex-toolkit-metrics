@@ -82,12 +82,26 @@ public static class MetricsCli
             return 1;
         }
 
+        if (args.Length == 4 && args[0] == "publish-pages")
+        {
+            var result = await PagesPublisher.PublishAsync(args[1], args[2], args[3], cancellationToken);
+            if (result.IsValid)
+            {
+                await output.WriteLineAsync($"Sanitized Pages artifact staged at: {Path.GetFullPath(args[3])}");
+                return 0;
+            }
+
+            foreach (var validationError in result.Errors) await error.WriteLineAsync(validationError);
+            return 1;
+        }
+
         await output.WriteLineAsync("Codex Toolkit Metrics");
         await output.WriteLineAsync("  run <plan.json> [--raw-dir <directory>] [--reuse-baseline]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
         await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
         await output.WriteLineAsync("  dashboard-check <dashboard-directory>");
+        await output.WriteLineAsync("  publish-pages <dashboard-directory> <public-data-directory> <output-directory>");
         await output.WriteLineAsync("  measure-static <toolkit-directory> [--output <report.json>] [--public-output <aggregate.json>]");
         return args.Length == 0 || (args.Length == 1 && args[0] is "help" or "--help" or "-h") ? 0 : 2;
     }
