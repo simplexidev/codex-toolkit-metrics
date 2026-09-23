@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/evaluation-record-v1.schema.json",
+  "title": "Codex Toolkit evaluation record",
+  "description": "A sanitized, provenance-aware evaluation record. All numeric metrics use the numericMetric definition.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "identity", "arm", "quality", "efficiency", "jev", "staticCost", "statistics"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "identity": { "$ref": "#/$defs/identity" },
+    "arm": { "$ref": "#/$defs/arm" },
+    "quality": { "$ref": "#/$defs/quality" },
+    "efficiency": { "$ref": "#/$defs/efficiency" },
+    "jev": { "$ref": "#/$defs/jev" },
+    "staticCost": { "$ref": "#/$defs/staticCost" },
+    "statistics": { "$ref": "#/$defs/statistics" }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableIdentifier": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "sha": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{7,64}$"
+    },
+    "numericMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "kind", "method"],
+      "properties": {
+        "value": { "type": ["number", "null"] },
+        "unit": { "$ref": "#/$defs/nonEmptyString" },
+        "kind": { "enum": ["measured", "derived", "estimated", "unavailable"] },
+        "method": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "unavailable" } }, "required": ["kind"] },
+          "then": { "properties": { "value": { "type": "null" } } },
+          "else": { "properties": { "value": { "type": "number" } } }
+        }
+      ]
+    },
+    "revision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha", "version"],
+      "properties": {
+        "sha": { "$ref": "#/$defs/sha" },
+        "version": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario", "capability", "skill", "agent", "arm", "executor", "judge", "toolkit", "metrics", "upstream", "timestamp", "repetition"],
+      "properties": {
+        "scenario": { "$ref": "#/$defs/nonEmptyString" },
+        "capability": { "$ref": "#/$defs/nonEmptyString" },
+        "skill": { "$ref": "#/$defs/nullableIdentifier" },
+        "agent": { "$ref": "#/$defs/nullableIdentifier" },
+        "arm": { "$ref": "#/$defs/nonEmptyString" },
+        "executor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model", "reasoning"],
+          "properties": {
+            "model": { "$ref": "#/$defs/nonEmptyString" },
+            "reasoning": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "judge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "model"],
+          "properties": {
+            "method": { "enum": ["deterministic", "gpt", "hybrid"] },
+            "model": { "type": ["string", "null"], "minLength": 1 }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "method": { "enum": ["gpt", "hybrid"] } }, "required": ["method"] },
+              "then": { "properties": { "model": { "type": "string", "minLength": 1 } } }
+            }
+          ]
+        },
+        "toolkit": { "$ref": "#/$defs/revision" },
+        "metrics": { "$ref": "#/$defs/revision" },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sha", "path"],
+          "properties": {
+            "sha": { "anyOf": [{ "$ref": "#/$defs/sha" }, { "type": "null" }] },
+            "path": { "type": ["string", "null"], "minLength": 1 }
+          }
+        },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "repetition": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparison", "customization"],
+      "properties": {
+        "comparison": { "enum": ["VANILLA", "UPSTREAM", "OPTIMIZED"] },
+        "customization": { "enum": ["BUILTIN-or-NO-CUSTOM", "PREVIOUS-CUSTOM", "OPTIMIZED-or-NEW"] }
+      }
+    },
+    "assertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "passed", "outcome"],
+      "properties": {
+        "total": { "$ref": "#/$defs/numericMetric" },
+        "passed": { "$ref": "#/$defs/numericMetric" },
+        "outcome": { "$ref": "#/$defs/gateOutcome" }
+      }
+    },
+    "routingQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correctness", "false", "missed"],
+      "properties": {
+        "correctness": { "$ref": "#/$defs/numericMetric" },
+        "false": { "$ref": "#/$defs/numericMetric" },
+        "missed": { "$ref": "#/$defs/numericMetric" }
+      }
+    },
+    "gateOutcome": {
+      "enum": ["pass", "fail", "not-applicable"]
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completion", "deterministicAssertions", "safetyAssertions", "semanticRubric", "activation", "delegation", "nestedDelegation", "finalQualityGate"],
+      "properties": {
+        "completion": { "$ref": "#/$defs/gateOutcome" },
+        "deterministicAssertions": { "$ref": "#/$defs/assertions" },
+        "safetyAssertions": { "$ref": "#/$defs/assertions" },
+        "semanticRubric": { "$ref": "#/$defs/numericMetric" },
+        "activation": { "$ref": "#/$defs/routingQuality" },
+        "delegation": { "$ref": "#/$defs/routingQuality" },
+        "nestedDelegation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "correctness"],
+          "properties": {
+            "outcome": { "$ref": "#/$defs/gateOutcome" },
+            "correctness": { "$ref": "#/$defs/numericMetric" }
+          }
+        },
+        "finalQualityGate": { "$ref": "#/$defs/gateOutcome" }
+      }
+    },
+    "efficiency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gptInputTokens", "gptOutputTokens", "gptTotalTokens", "turns", "toolCalls", "filesInContext", "contextTokens", "subagents", "fullBuilds", "targetedBuilds", "fullTests", "targetedTests", "elapsedTime"],
+      "properties": {
+        "gptInputTokens": { "$ref": "#/$defs/numericMetric" },
+        "gptOutputTokens": { "$ref": "#/$defs/numericMetric" },
+        "gptTotalTokens": { "$ref": "#/$defs/numericMetric" },
+        "turns": { "$ref": "#/$defs/numericMetric" },
+        "toolCalls": { "$ref": "#/$defs/numericMetric" },
+        "filesInContext": { "$ref": "#/$defs/numericMetric" },
+        "contextTokens": { "$ref": "#/$defs/numericMetric" },
+        "subagents": { "$ref": "#/$defs/numericMetric" },
+        "fullBuilds": { "$ref": "#/$defs/numericMetric" },
+        "targetedBuilds": { "$ref": "#/$defs/numericMetric" },
+        "fullTests": { "$ref": "#/$defs/numericMetric" },
+        "targetedTests": { "$ref": "#/$defs/numericMetric" },
+        "elapsedTime": { "$ref": "#/$defs/numericMetric" }
+      }
+    },
+    "jev": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deterministicResolutions", "purposeResolutions", "inputResolutions", "costResolutions", "confidenceResolutions", "outcomeResolutions", "fallbacks", "escalations", "falseExclusions", "contextAvoided"],
+      "properties": {
+        "deterministicResolutions": { "$ref": "#/$defs/numericMetric" },
+        "purposeResolutions": { "$ref": "#/$defs/numericMetric" },
+        "inputResolutions": { "$ref": "#/$defs/numericMetric" },
+        "costResolutions": { "$ref": "#/$defs/numericMetric" },
+        "confidenceResolutions": { "$ref": "#/$defs/numericMetric" },
+        "outcomeResolutions": { "$ref": "#/$defs/numericMetric" },
+        "fallbacks": { "$ref": "#/$defs/numericMetric" },
+        "escalations": { "$ref": "#/$defs/numericMetric" },
+        "falseExclusions": { "$ref": "#/$defs/numericMetric" },
+        "contextAvoided": { "$ref": "#/$defs/numericMetric" }
+      }
+    },
+    "staticCost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skill", "agent"],
+      "properties": {
+        "skill": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trigger", "skillFile", "lazyReferences", "alwaysVisible", "activationVisible"],
+          "properties": {
+            "trigger": { "$ref": "#/$defs/numericMetric" },
+            "skillFile": { "$ref": "#/$defs/numericMetric" },
+            "lazyReferences": { "$ref": "#/$defs/numericMetric" },
+            "alwaysVisible": { "$ref": "#/$defs/numericMetric" },
+            "activationVisible": { "$ref": "#/$defs/numericMetric" }
+          }
+        },
+        "agent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["configuration", "instructions"],
+          "properties": {
+            "configuration": { "$ref": "#/$defs/numericMetric" },
+            "instructions": { "$ref": "#/$defs/numericMetric" }
+          }
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baselineCompatibility", "summaries"],
+      "properties": {
+        "baselineCompatibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hash", "version"],
+          "properties": {
+            "hash": { "$ref": "#/$defs/nonEmptyString" },
+            "version": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "summaries": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/statisticalSummary" }
+        }
+      }
+    },
+    "statisticalSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "repetitions", "mean", "median", "minimum", "maximum", "confidenceInterval"],
+      "properties": {
+        "metric": { "$ref": "#/$defs/nonEmptyString" },
+        "repetitions": { "$ref": "#/$defs/numericMetric" },
+        "mean": { "$ref": "#/$defs/numericMetric" },
+        "median": { "$ref": "#/$defs/numericMetric" },
+        "minimum": { "$ref": "#/$defs/numericMetric" },
+        "maximum": { "$ref": "#/$defs/numericMetric" },
+        "confidenceInterval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "lower", "upper", "method", "justification"],
+          "properties": {
+            "level": { "$ref": "#/$defs/numericMetric" },
+            "lower": { "$ref": "#/$defs/numericMetric" },
+            "upper": { "$ref": "#/$defs/numericMetric" },
+            "method": { "$ref": "#/$defs/nonEmptyString" },
+            "justification": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,6 +23,12 @@ short-lived CI artifacts. Only reviewed aggregates accepted by
 [`schemas/public-metrics-v1.schema.json`](schemas/public-metrics-v1.schema.json) may be
 committed or eventually published.
 
+Run-level evaluator output uses the typed C# data model and
+[`schemas/evaluation-record-v1.schema.json`](schemas/evaluation-record-v1.schema.json).
+Every numeric metric carries a `kind` (`measured`, `derived`, `estimated`, or
+`unavailable`), unit, and method. The [schema lifecycle policy](schemas/README.md)
+defines compatibility and migration rules.
+
 ## Develop
 
 The repository requires the .NET SDK selected by `global.json`.
@@ -30,6 +36,7 @@ The repository requires the .NET SDK selected by `global.json`.
 ```console
 dotnet restore CodexToolkit.Metrics.slnx
 dotnet test CodexToolkit.Metrics.slnx
+dotnet run --project src/CodexToolkit.Metrics -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
 dotnet run --project src/CodexToolkit.Metrics -- validate-public data/public/example-summary.json
 dotnet run --project src/CodexToolkit.Metrics -- dashboard-check dashboard
 ```
