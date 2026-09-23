@@ -1,0 +1,5 @@
+Module: Calculator
+Line coverage: 66.7% (2/3 executable lines)
+Calculator.Add: covered
+Calculator.Divide: partially covered; denominator == 0 has no test
+

@@ -3,6 +3,8 @@ bin/
 obj/
 TestResults/
 artifacts/
+!scenarios/fixtures/pre-optimization/artifacts/
+!scenarios/fixtures/pre-optimization/artifacts/**
 coverage/
 *.trx
 

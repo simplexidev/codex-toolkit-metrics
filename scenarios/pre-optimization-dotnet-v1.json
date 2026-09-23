@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "1.1",
+  "suite": "pre-optimization-dotnet-v1",
+  "fixtureRoot": "fixtures/pre-optimization",
+  "repetitions": 1,
+  "timeoutSeconds": 240,
+  "executor": {
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "reasoning": "low",
+    "version": "codex-cli-0.155.1"
+  },
+  "judge": { "path": "deterministic" },
+  "provenance": {
+    "toolkit": { "sha": "771f6513b938aceca2f88c59cbd9a3bfbcb39ff9", "version": "v2-pre-optimization" },
+    "metrics": { "sha": "2f71672", "version": "pre-optimization-baseline-phase" },
+    "upstream": {
+      "sha": "4ed5f7c121da8dd31af31a35cef05070948c6556",
+      "path": "dotnet/skills"
+    }
+  },
+  "arms": [
+    {
+      "id": "dotnet-vanilla",
+      "comparison": "VANILLA",
+      "customization": "BUILTIN-or-NO-CUSTOM"
+    },
+    {
+      "id": "dotnet-upstream",
+      "comparison": "UPSTREAM",
+      "customization": "BUILTIN-or-NO-CUSTOM",
+      "skillPaths": [
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-test/skills/run-tests",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-test/skills/filter-syntax",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-test/skills/writing-mstest-tests",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-test/skills/coverage-analysis",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-test/skills/test-gap-analysis",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-msbuild/skills/binlog-failure-analysis",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-msbuild/skills/build-perf-diagnostics",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-msbuild/skills/incremental-build",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-diag/skills/analyzing-dotnet-performance",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-diag/skills/dotnet-trace-collect",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet-advanced/skills/dotnet-pinvoke",
+        "../../.agent-results/upstreams/dotnet-skills/plugins/dotnet/skills/csharp-refactoring"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "single-test",
+      "capability": "single-test",
+      "prompt": "Read-only task. Inspect the fixture and propose the exact command that runs only Add_combines_two_positive_values. End with the literal marker SCENARIO: single-test and include dotnet test plus a FullyQualifiedName filter. Do not modify files or run restore.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: single-test", "dotnet test", "FullyQualifiedName"] }
+    },
+    {
+      "id": "affected-tests",
+      "capability": "affected-tests",
+      "prompt": "Read-only task. Map the smallest test scope affected by a change to src/Calculator/Calculator.cs and give the command. End with SCENARIO: affected-tests and mention Calculator.Tests. Do not modify files or run restore.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: affected-tests", "Calculator.Tests"] }
+    },
+    {
+      "id": "test-writing",
+      "capability": "test-writing",
+      "prompt": "Read-only task. Inspect Calculator and its tests, then specify one high-value missing test including expected behavior. End with SCENARIO: test-writing and mention DivideByZeroException. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: test-writing", "DivideByZeroException"] }
+    },
+    {
+      "id": "compiler-failure",
+      "capability": "compiler-build-failure",
+      "prompt": "Read-only task. Diagnose artifacts/compiler-error.txt, name the diagnostic and propose the narrowest verification command. End with SCENARIO: compiler-failure and mention CS0029. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: compiler-failure", "CS0029"] }
+    },
+    {
+      "id": "msbuild-failure",
+      "capability": "msbuild-failure",
+      "prompt": "Read-only task. Diagnose artifacts/msbuild-failure.txt, separate the symptom from the likely cause, and name the next evidence to collect. End with SCENARIO: msbuild-failure and mention MSB4018. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: msbuild-failure", "MSB4018"] }
+    },
+    {
+      "id": "slow-build",
+      "capability": "slow-build",
+      "prompt": "Read-only task. Analyze artifacts/slow-build.txt, identify the dominant target, and propose a measurement-first next step. End with SCENARIO: slow-build and mention GeneratePackageGraph. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: slow-build", "GeneratePackageGraph"] }
+    },
+    {
+      "id": "coverage",
+      "capability": "coverage",
+      "prompt": "Read-only task. Interpret artifacts/coverage-summary.txt and prioritize one behavioral coverage gap without treating percentage alone as quality. End with SCENARIO: coverage and mention denominator. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: coverage", "denominator"] }
+    },
+    {
+      "id": "diagnostics-planning",
+      "capability": "diagnostics-planning",
+      "prompt": "Read-only task. Based on the fixture, give a bounded diagnostic collection plan for intermittent divide failures, including a stop condition and privacy caution. End with SCENARIO: diagnostics-planning and mention trace. Do not collect diagnostics or modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: diagnostics-planning", "trace"] }
+    },
+    {
+      "id": "repo-mapping",
+      "capability": "repository-mapping",
+      "prompt": "Read-only task. Map projects and dependency direction from Baseline.slnx and project files. End with SCENARIO: repo-mapping and state Calculator.Tests -> Calculator. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: repo-mapping", "Calculator.Tests -> Calculator"] }
+    },
+    {
+      "id": "log-analysis",
+      "capability": "log-analysis",
+      "prompt": "Read-only task. Analyze artifacts/application.log, correlate the failing request, and state the supported cause without inventing facts. End with SCENARIO: log-analysis and mention request=beta. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: log-analysis", "request=beta"] }
+    },
+    {
+      "id": "focused-review",
+      "capability": "focused-review",
+      "prompt": "Read-only task. Review artifacts/focused-review.patch for behavior regressions with concrete evidence. End with SCENARIO: focused-review and mention silent success. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: focused-review", "silent success"] }
+    },
+    {
+      "id": "git-github-ci",
+      "capability": "git-github-ci",
+      "prompt": "Read-only task. Inspect .github/workflows/ci.yml and identify one reproducibility risk plus a precise improvement. End with SCENARIO: git-github-ci and mention global.json. Do not modify files or contact GitHub.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: git-github-ci", "global.json"] }
+    },
+    {
+      "id": "advanced-dotnet",
+      "capability": "advanced-dotnet",
+      "prompt": "Read-only task. Explain the correctness boundary for replacing Calculator.Divide with a native P/Invoke implementation: ABI facts, ownership, error behavior, and verification. End with SCENARIO: advanced-dotnet and mention LibraryImport. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: advanced-dotnet", "LibraryImport"] }
+    },
+    {
+      "id": "general-repository",
+      "capability": "general-repository",
+      "prompt": "Read-only task. Produce a concise risk-ranked next-work plan for this repository using only fixture evidence. End with SCENARIO: general-repository and mention verification. Do not modify files.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: general-repository", "verification"] }
+    }
+  ]
+}

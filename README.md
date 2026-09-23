@@ -49,6 +49,7 @@ dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/runner-
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
+dotnet run --project src/CodexToolkit.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
@@ -58,6 +59,15 @@ covers scenario expectations and prompts, fixture and overlay content, executor/
 reasoning/executable settings, timeout, judge settings, and runner compatibility version.
 An exact hash/version match is required for reuse; existing mismatches are stale and run
 again.
+
+The pre-optimization plans cover single and affected tests, test writing, compiler and
+MSBuild failures, slow builds, coverage, diagnostics planning, repository mapping, log
+analysis, focused review, Git/GitHub/CI, advanced .NET, and a general repository task.
+They compare vanilla execution with a pinned current upstream .NET skill selection and
+built-in/no-custom execution with the current custom reviewer. Repetitions are fixed at
+one for this broad baseline; compatible raw trials can be reused. `aggregate-baseline`
+reads only validated private evaluation records, rejects mixed toolkit revisions, and
+emits a schema-validated reviewed aggregate without prompts, responses, logs, or paths.
 
 Judging has three explicit boundaries: deterministic assertions are implemented, the JEV
 path records a deferred/not-applicable semantic result, and the GPT path invokes a
