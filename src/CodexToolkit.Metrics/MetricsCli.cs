@@ -25,6 +25,23 @@ public static class MetricsCli
             return 1;
         }
 
+        if (args.Length == 2 && args[0] == "validate-evaluation")
+        {
+            var result = await EvaluationRecordValidator.ValidateFileAsync(args[1], cancellationToken);
+            if (result.IsValid)
+            {
+                await output.WriteLineAsync($"Valid evaluation record: {args[1]}");
+                return 0;
+            }
+
+            foreach (var validationError in result.Errors)
+            {
+                await error.WriteLineAsync(validationError);
+            }
+
+            return 1;
+        }
+
         if (args.Length == 2 && args[0] == "dashboard-check")
         {
             var errors = DashboardValidator.Validate(args[1]);
@@ -43,6 +60,7 @@ public static class MetricsCli
         }
 
         await output.WriteLineAsync("Codex Toolkit Metrics");
+        await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
         await output.WriteLineAsync("  dashboard-check <dashboard-directory>");
         return args.Length == 0 || (args.Length == 1 && args[0] is "help" or "--help" or "-h") ? 0 : 2;

@@ -27,6 +27,7 @@ jobs:
       - run: dotnet restore CodexToolkit.Metrics.slnx
       - run: dotnet build CodexToolkit.Metrics.slnx --no-restore
       - run: dotnet test CodexToolkit.Metrics.slnx --no-build --logger trx --results-directory TestResults
+      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
       - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-public data/public/example-summary.json
       - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- dashboard-check dashboard
       - run: dotnet format CodexToolkit.Metrics.slnx --no-restore --verify-no-changes

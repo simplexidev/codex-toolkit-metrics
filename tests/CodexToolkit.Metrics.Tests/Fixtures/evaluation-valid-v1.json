@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "1.0.0",
+  "identity": {
+    "scenario": "structured-help",
+    "capability": "structured-output",
+    "skill": "example-skill",
+    "agent": null,
+    "arm": "optimized-new",
+    "executor": { "model": "gpt-5", "reasoning": "medium" },
+    "judge": { "method": "hybrid", "model": "gpt-5" },
+    "toolkit": { "sha": "0123456789abcdef0123456789abcdef01234567", "version": "2.0.0-preview.1" },
+    "metrics": { "sha": "abcdef0123456789abcdef0123456789abcdef01", "version": "1.0.0" },
+    "upstream": { "sha": "1111111111111111111111111111111111111111", "path": "upstream/skills/example" },
+    "timestamp": "2026-09-22T12:00:00Z",
+    "repetition": 1
+  },
+  "arm": {
+    "comparison": "OPTIMIZED",
+    "customization": "OPTIMIZED-or-NEW"
+  },
+  "quality": {
+    "completion": "pass",
+    "deterministicAssertions": {
+      "total": { "value": 4, "unit": "count", "kind": "measured", "method": "assertion runner" },
+      "passed": { "value": 4, "unit": "count", "kind": "measured", "method": "assertion runner" },
+      "outcome": "pass"
+    },
+    "safetyAssertions": {
+      "total": { "value": 2, "unit": "count", "kind": "measured", "method": "safety checker" },
+      "passed": { "value": 2, "unit": "count", "kind": "measured", "method": "safety checker" },
+      "outcome": "pass"
+    },
+    "semanticRubric": { "value": 0.92, "unit": "ratio", "kind": "derived", "method": "normalized hybrid rubric" },
+    "activation": {
+      "correctness": { "value": 1, "unit": "ratio", "kind": "measured", "method": "expected activation comparison" },
+      "false": { "value": 0, "unit": "count", "kind": "measured", "method": "expected activation comparison" },
+      "missed": { "value": 0, "unit": "count", "kind": "measured", "method": "expected activation comparison" }
+    },
+    "delegation": {
+      "correctness": { "value": 1, "unit": "ratio", "kind": "measured", "method": "expected delegation comparison" },
+      "false": { "value": 0, "unit": "count", "kind": "measured", "method": "expected delegation comparison" },
+      "missed": { "value": 0, "unit": "count", "kind": "measured", "method": "expected delegation comparison" }
+    },
+    "nestedDelegation": {
+      "outcome": "not-applicable",
+      "correctness": { "value": null, "unit": "ratio", "kind": "unavailable", "method": "scenario has no nested delegation" }
+    },
+    "finalQualityGate": "pass"
+  },
+  "efficiency": {
+    "gptInputTokens": { "value": 1200, "unit": "tokens", "kind": "measured", "method": "executor usage" },
+    "gptOutputTokens": { "value": 300, "unit": "tokens", "kind": "measured", "method": "executor usage" },
+    "gptTotalTokens": { "value": 1500, "unit": "tokens", "kind": "derived", "method": "input plus output" },
+    "turns": { "value": 3, "unit": "count", "kind": "measured", "method": "event stream" },
+    "toolCalls": { "value": 5, "unit": "count", "kind": "measured", "method": "event stream" },
+    "filesInContext": { "value": 4, "unit": "count", "kind": "measured", "method": "context manifest" },
+    "contextTokens": { "value": 800, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" },
+    "subagents": { "value": 0, "unit": "count", "kind": "measured", "method": "event stream" },
+    "fullBuilds": { "value": 0, "unit": "count", "kind": "measured", "method": "command classifier" },
+    "targetedBuilds": { "value": 1, "unit": "count", "kind": "measured", "method": "command classifier" },
+    "fullTests": { "value": 0, "unit": "count", "kind": "measured", "method": "command classifier" },
+    "targetedTests": { "value": 1, "unit": "count", "kind": "measured", "method": "command classifier" },
+    "elapsedTime": { "value": 12.4, "unit": "seconds", "kind": "measured", "method": "monotonic clock" }
+  },
+  "jev": {
+    "deterministicResolutions": { "value": 3, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "purposeResolutions": { "value": 1, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "inputResolutions": { "value": 1, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "costResolutions": { "value": 1, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "confidenceResolutions": { "value": 1, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "outcomeResolutions": { "value": 1, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "fallbacks": { "value": 0, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "escalations": { "value": 0, "unit": "count", "kind": "measured", "method": "decision trace" },
+    "falseExclusions": { "value": 0, "unit": "count", "kind": "measured", "method": "expected inclusion comparison" },
+    "contextAvoided": { "value": 2400, "unit": "tokens", "kind": "estimated", "method": "excluded reference token estimate" }
+  },
+  "staticCost": {
+    "skill": {
+      "trigger": { "value": 90, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" },
+      "skillFile": { "value": 500, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" },
+      "lazyReferences": { "value": 2200, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" },
+      "alwaysVisible": { "value": 90, "unit": "tokens", "kind": "derived", "method": "trigger only" },
+      "activationVisible": { "value": 590, "unit": "tokens", "kind": "derived", "method": "trigger plus skill file" }
+    },
+    "agent": {
+      "configuration": { "value": 75, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" },
+      "instructions": { "value": 400, "unit": "tokens", "kind": "estimated", "method": "tokenizer estimate" }
+    }
+  },
+  "statistics": {
+    "baselineCompatibility": { "hash": "sha256:synthetic-fixture", "version": "1.0.0" },
+    "summaries": [
+      {
+        "metric": "efficiency.elapsedTime",
+        "repetitions": { "value": 5, "unit": "count", "kind": "measured", "method": "included compatible runs" },
+        "mean": { "value": 12.1, "unit": "seconds", "kind": "derived", "method": "arithmetic mean" },
+        "median": { "value": 12.0, "unit": "seconds", "kind": "derived", "method": "sample median" },
+        "minimum": { "value": 11.2, "unit": "seconds", "kind": "derived", "method": "sample minimum" },
+        "maximum": { "value": 13.0, "unit": "seconds", "kind": "derived", "method": "sample maximum" },
+        "confidenceInterval": {
+          "level": { "value": 0.95, "unit": "ratio", "kind": "derived", "method": "configured confidence level" },
+          "lower": { "value": 11.4, "unit": "seconds", "kind": "estimated", "method": "student t interval" },
+          "upper": { "value": 12.8, "unit": "seconds", "kind": "estimated", "method": "student t interval" },
+          "method": "student-t",
+          "justification": "Small sample with unknown population variance and approximately symmetric observations."
+        }
+      }
+    ]
+  }
+}
