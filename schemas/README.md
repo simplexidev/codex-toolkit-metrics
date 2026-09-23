@@ -3,6 +3,8 @@
 Schema artifacts use a stable family name plus a major version in the filename, and a
 semantic version in each document's `schemaVersion` field. For example,
 `evaluation-record-v1.schema.json` accepts `schemaVersion` `1.0.0`.
+Runner inputs use the separately versioned `evaluation-plan-v1.schema.json` family and
+currently accept plan `schemaVersion` `1.0`.
 
 - Patch versions clarify validation without changing the accepted data shape.
 - Minor versions add backward-compatible optional fields or enum values.

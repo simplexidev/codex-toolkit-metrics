@@ -29,6 +29,39 @@ Every numeric metric carries a `kind` (`measured`, `derived`, `estimated`, or
 `unavailable`), unit, and method. The [schema lifecycle policy](schemas/README.md)
 defines compatibility and migration rules.
 
+## Evaluation runner
+
+The runner executes only through the OpenAI-backed Codex CLI. Executor and GPT-judge
+model IDs are plan settings; non-OpenAI providers and Claude model identifiers are
+rejected. Plans also require an executor version tag so CLI upgrades invalidate cached
+baselines. Each arm/repetition receives an isolated copy of its fixture plus configured
+skill and agent overlays. Timeouts are bounded and terminate the complete process tree.
+
+Plans conform to
+[`schemas/evaluation-plan-v1.schema.json`](schemas/evaluation-plan-v1.schema.json). The
+[`scenarios/runner-smoke-v1.json`](scenarios/runner-smoke-v1.json) plan is a synthetic
+example; replace its provenance placeholders before recording a real run.
+
+```console
+dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/runner-smoke-v1.json
+dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json
+dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
+dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
+```
+
+Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
+the selected private raw directory (default `data/private/runs/`, which is ignored).
+Console output contains only compact pass/fail and reuse counts. Compatibility hashing
+covers scenario expectations and prompts, fixture and overlay content, executor/model/
+reasoning/executable settings, timeout, judge settings, and runner compatibility version.
+An exact hash/version match is required for reuse; existing mismatches are stale and run
+again.
+
+Judging has three explicit boundaries: deterministic assertions are implemented, the JEV
+path records a deferred/not-applicable semantic result, and the GPT path invokes a
+bounded OpenAI judge that must return a score in `[0,1]`. Full JEV judging is intentionally
+deferred.
+
 ## Develop
 
 The repository requires the .NET SDK selected by `global.json`.
