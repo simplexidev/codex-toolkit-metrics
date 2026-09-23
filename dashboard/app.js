@@ -27,7 +27,7 @@ function displayValue(metric) {
   return `${new Intl.NumberFormat().format(metric.value)} ${metric.unit}`;
 }
 
-fetch("../data/public/example-summary.json")
+fetch("../data/public/static-cost-routing.json")
   .then((response) => {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);

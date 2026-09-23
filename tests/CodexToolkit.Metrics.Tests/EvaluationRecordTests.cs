@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace CodexToolkit.Metrics.Tests;
 
@@ -59,8 +60,8 @@ public sealed class EvaluationRecordTests
     {
         var json = File.ReadAllText(Fixture("evaluation-valid-v1.json"))
             .Replace(
-                "\"schemaVersion\": \"1.0.0\"",
-                "\"schemaVersion\": \"1.0.0\", \"unexpected\": true",
+                "\"schemaVersion\": \"1.1.0\"",
+                "\"schemaVersion\": \"1.1.0\", \"unexpected\": true",
                 StringComparison.Ordinal);
         var path = await WriteTemporaryFixture(json);
 
@@ -116,6 +117,23 @@ public sealed class EvaluationRecordTests
             ["measured", "derived", "estimated", "unavailable"],
             numericMetric.GetProperty("properties").GetProperty("kind").GetProperty("enum")
                 .EnumerateArray().Select(item => item.GetString()));
+    }
+
+    [Fact]
+    public void ReadsVersionOneRecordWithoutMinorVersionMeasurements()
+    {
+        var node = JsonNode.Parse(File.ReadAllText(Fixture("evaluation-valid-v1.json")))!.AsObject();
+        node["schemaVersion"] = "1.0.0";
+        var quality = node["quality"]!.AsObject();
+        quality.Remove("invokedTools");
+        quality.Remove("contextIsolation");
+
+        var record = EvaluationRecordJson.Deserialize(node.ToJsonString());
+
+        Assert.NotNull(record);
+        Assert.Null(record.Quality.InvokedTools);
+        Assert.Null(record.Quality.ContextIsolation);
+        Assert.True(EvaluationRecordValidator.Validate(record).IsValid);
     }
 
     private static string Fixture(string name) => Path.Combine(AppContext.BaseDirectory, "Fixtures", name);

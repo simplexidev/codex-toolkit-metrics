@@ -5,7 +5,7 @@ namespace CodexToolkit.Metrics;
 
 public sealed record EvaluationPlan
 {
-    public const string CurrentSchemaVersion = "1.0";
+    public const string CurrentSchemaVersion = "1.1";
 
     public required string SchemaVersion { get; init; }
     public required string Suite { get; init; }
@@ -69,6 +69,24 @@ public sealed record ScenarioExpectations
     public IReadOnlyList<FileContentExpectation> FileContains { get; init; } = [];
     public IReadOnlyList<string> ActivatedSkills { get; init; } = [];
     public IReadOnlyList<string> DelegatedAgents { get; init; } = [];
+    public IReadOnlyList<string> InvokedTools { get; init; } = [];
+    public RoutingCase ActivationCase { get; init; } = RoutingCase.Unspecified;
+    public RoutingCase DelegationCase { get; init; } = RoutingCase.Unspecified;
+    public bool? NestedDelegation { get; init; }
+    public bool? ContextIsolation { get; init; }
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter<RoutingCase>))]
+public enum RoutingCase
+{
+    [JsonStringEnumMemberName("unspecified")]
+    Unspecified,
+    [JsonStringEnumMemberName("should-activate")]
+    ShouldActivate,
+    [JsonStringEnumMemberName("should-not-activate")]
+    ShouldNotActivate,
+    [JsonStringEnumMemberName("ambiguous")]
+    Ambiguous
 }
 
 public sealed record FileContentExpectation
@@ -122,9 +140,9 @@ public static class EvaluationPlanLoader
     public static IReadOnlyList<string> Validate(EvaluationPlan plan)
     {
         var errors = new List<string>();
-        if (plan.SchemaVersion != EvaluationPlan.CurrentSchemaVersion)
+        if (plan.SchemaVersion is not ("1.0" or EvaluationPlan.CurrentSchemaVersion))
         {
-            errors.Add($"schemaVersion must equal '{EvaluationPlan.CurrentSchemaVersion}'.");
+            errors.Add($"schemaVersion must equal '1.0' or '{EvaluationPlan.CurrentSchemaVersion}'.");
         }
 
         Require(plan.Suite, "suite", errors);
@@ -183,6 +201,13 @@ public static class EvaluationPlanLoader
                 errors.Add($"scenario '{scenario.Id}' must specify exactly one of prompt or promptFile.");
             }
             if (scenario.Expected is null) errors.Add($"scenario '{scenario.Id}' expected is required.");
+            else
+            {
+                ValidateRoutingCase(scenario.Expected.ActivationCase, scenario.Expected.ActivatedSkills,
+                    $"scenario '{scenario.Id}' activation", errors);
+                ValidateRoutingCase(scenario.Expected.DelegationCase, scenario.Expected.DelegatedAgents,
+                    $"scenario '{scenario.Id}' delegation", errors);
+            }
         }
 
         return errors;
@@ -219,6 +244,18 @@ public static class EvaluationPlanLoader
             Require(value, $"{name}.id", errors);
             if (!seen.Add(value)) errors.Add($"{name} id '{value}' must be unique.");
         }
+    }
+
+    private static void ValidateRoutingCase(
+        RoutingCase routingCase,
+        IReadOnlyList<string> expected,
+        string path,
+        List<string> errors)
+    {
+        if (routingCase == RoutingCase.ShouldActivate && expected.Count == 0)
+            errors.Add($"{path} should-activate requires at least one expected name.");
+        if (routingCase == RoutingCase.ShouldNotActivate && expected.Count != 0)
+            errors.Add($"{path} should-not-activate cannot include expected names.");
     }
 
     private static void Require(string? value, string path, List<string> errors)

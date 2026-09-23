@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/static-cost-report-v1.schema.json",
+  "title": "Codex Toolkit static cost report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "subject", "revision", "tokenizer", "skills", "agents", "routingOverlap", "summary"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "subject": { "const": "simplexidev/codex-toolkit" },
+    "revision": { "type": "string", "pattern": "^[0-9a-fA-F]{7,64}$" },
+    "tokenizer": { "type": "string", "minLength": 1 },
+    "skills": { "type": "array", "items": { "$ref": "#/$defs/skill" } },
+    "agents": { "type": "array", "items": { "$ref": "#/$defs/agent" } },
+    "routingOverlap": { "type": "array", "items": { "$ref": "#/$defs/overlap" } },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "name": { "type": "string", "minLength": 1 },
+    "count": { "type": "integer", "minimum": 0 },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "characters", "tokens", "tokenKind", "tokenMethod"],
+      "properties": {
+        "bytes": { "$ref": "#/$defs/count" },
+        "characters": { "$ref": "#/$defs/count" },
+        "tokens": { "$ref": "#/$defs/count" },
+        "tokenKind": { "const": "estimated" },
+        "tokenMethod": { "$ref": "#/$defs/name" }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "trigger", "skillFile", "lazyReferences", "maximumPossibleLoad", "alwaysVisible", "activationVisible", "lazyReferenceFiles"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "trigger": { "$ref": "#/$defs/cost" },
+        "skillFile": { "$ref": "#/$defs/cost" },
+        "lazyReferences": { "$ref": "#/$defs/cost" },
+        "maximumPossibleLoad": { "$ref": "#/$defs/cost" },
+        "alwaysVisible": { "$ref": "#/$defs/cost" },
+        "activationVisible": { "$ref": "#/$defs/cost" },
+        "lazyReferenceFiles": { "$ref": "#/$defs/count" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "configuration", "instructions", "total"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "configuration": { "$ref": "#/$defs/cost" },
+        "instructions": { "$ref": "#/$defs/cost" },
+        "total": { "$ref": "#/$defs/cost" }
+      }
+    },
+    "overlap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["left", "right", "jaccard", "sharedTerms"],
+      "properties": {
+        "left": { "$ref": "#/$defs/name" },
+        "right": { "$ref": "#/$defs/name" },
+        "jaccard": { "$ref": "#/$defs/ratio" },
+        "sharedTerms": { "$ref": "#/$defs/count" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["skillCount", "agentCount", "routingPairs", "overlappingRoutingPairs", "meanRoutingOverlap", "maximumRoutingOverlap", "skillTriggers", "skillFiles", "lazyReferences", "maximumPossibleLoad", "alwaysVisible", "activationVisible", "agentConfiguration", "agentInstructions"],
+      "properties": {
+        "skillCount": { "$ref": "#/$defs/count" },
+        "agentCount": { "$ref": "#/$defs/count" },
+        "routingPairs": { "$ref": "#/$defs/count" },
+        "overlappingRoutingPairs": { "$ref": "#/$defs/count" },
+        "meanRoutingOverlap": { "$ref": "#/$defs/ratio" },
+        "maximumRoutingOverlap": { "$ref": "#/$defs/ratio" },
+        "skillTriggers": { "$ref": "#/$defs/cost" },
+        "skillFiles": { "$ref": "#/$defs/cost" },
+        "lazyReferences": { "$ref": "#/$defs/cost" },
+        "maximumPossibleLoad": { "$ref": "#/$defs/cost" },
+        "alwaysVisible": { "$ref": "#/$defs/cost" },
+        "activationVisible": { "$ref": "#/$defs/cost" },
+        "agentConfiguration": { "$ref": "#/$defs/cost" },
+        "agentInstructions": { "$ref": "#/$defs/cost" }
+      }
+    }
+  }
+}

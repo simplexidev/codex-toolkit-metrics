@@ -33,6 +33,9 @@ public sealed record ExecutionObservations
 {
     public IReadOnlyList<string> ActivatedSkills { get; init; } = [];
     public IReadOnlyList<string> DelegatedAgents { get; init; } = [];
+    public IReadOnlyList<string> InvokedTools { get; init; } = [];
+    public int? MaximumDelegationDepth { get; init; }
+    public bool? ContextIsolated { get; init; }
 }
 
 public interface IEvaluationExecutor

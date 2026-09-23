@@ -6,9 +6,9 @@ public sealed class CodexJsonlParserTests
     public void ParsesResponseUsageToolsAndRoutingObservations()
     {
         var jsonl = """
-            {"type":"item.started","item":{"type":"command_execution"}}
+            {"type":"item.started","item":{"type":"command_execution","command":"dotnet test"}}
             {"type":"skill.activated","activated_skill":"documents"}
-            {"type":"item.completed","item":{"type":"subagent","delegated_agent":"reviewer"}}
+            {"type":"item.completed","item":{"type":"subagent","delegated_agent":"reviewer","delegation_depth":2,"context_isolated":true}}
             {"type":"item.completed","item":{"type":"agent_message","text":"done"}}
             {"type":"turn.completed","usage":{"input_tokens":12,"output_tokens":3,"total_tokens":15}}
             """;
@@ -23,6 +23,9 @@ public sealed class CodexJsonlParserTests
         Assert.Equal(1, parsed.Usage.Turns);
         Assert.Equal(["documents"], parsed.Observations.ActivatedSkills);
         Assert.Equal(["reviewer"], parsed.Observations.DelegatedAgents);
+        Assert.Equal(["dotnet test"], parsed.Observations.InvokedTools);
+        Assert.Equal(2, parsed.Observations.MaximumDelegationDepth);
+        Assert.True(parsed.Observations.ContextIsolated);
     }
 
     [Fact]

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.1",
+  "suite": "routing-delegation-v1",
+  "fixtureRoot": "fixtures/smoke",
+  "repetitions": 3,
+  "timeoutSeconds": 180,
+  "executor": { "provider": "openai", "model": "gpt-5", "reasoning": "medium", "version": "set-to-codex-cli-version" },
+  "judge": { "path": "deterministic" },
+  "provenance": {
+    "toolkit": { "sha": "0000000", "version": "configure-before-run" },
+    "metrics": { "sha": "0000000", "version": "configure-before-run" },
+    "upstream": { "sha": null, "path": null }
+  },
+  "arms": [{
+    "id": "toolkit",
+    "comparison": "OPTIMIZED",
+    "customization": "OPTIMIZED-or-NEW",
+    "skillPaths": [
+      "../../codex-toolkit/plugins/codex-toolkit/skills/benchmark",
+      "../../codex-toolkit/plugins/codex-toolkit/skills/dotnet-verify"
+    ],
+    "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"]
+  }],
+  "scenarios": [
+    {
+      "id": "skill-should-activate",
+      "capability": "routing",
+      "prompt": "Create an explicitly requested .NET performance benchmark plan.",
+      "expected": { "activationCase": "should-activate", "activatedSkills": ["benchmark"] }
+    },
+    {
+      "id": "skill-should-not-activate",
+      "capability": "routing",
+      "prompt": "Explain what a benchmark is in one sentence; do not run or create one.",
+      "expected": { "activationCase": "should-not-activate" }
+    },
+    {
+      "id": "skill-ambiguous",
+      "capability": "routing",
+      "prompt": "Look into whether this operation may be slow.",
+      "expected": { "activationCase": "ambiguous" }
+    },
+    {
+      "id": "delegation-correct-or-missed",
+      "capability": "delegation",
+      "prompt": "Perform an independent read-only review of the completed high-risk diff.",
+      "expected": { "delegationCase": "should-activate", "delegatedAgents": ["reviewer"], "contextIsolation": true }
+    },
+    {
+      "id": "delegation-false",
+      "capability": "delegation",
+      "prompt": "Fix the typo in README.md without requesting an independent review.",
+      "expected": { "delegationCase": "should-not-activate" }
+    },
+    {
+      "id": "nested-delegation",
+      "capability": "delegation",
+      "prompt": "Delegate a bounded review and have that reviewer delegate one independent verification subtask.",
+      "expected": { "delegationCase": "should-activate", "delegatedAgents": ["reviewer"], "nestedDelegation": true, "contextIsolation": true }
+    },
+    {
+      "id": "skill-and-tool-observation",
+      "capability": "tool-routing",
+      "prompt": "Locate the affected .NET projects using the deterministic repository tool.",
+      "expected": { "activationCase": "should-activate", "activatedSkills": ["dotnet-verify"], "invokedTools": ["repo affected-projects"] }
+    }
+  ]
+}

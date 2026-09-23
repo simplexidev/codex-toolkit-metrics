@@ -12,3 +12,9 @@ boundary, provenance, arms, and deterministic expectations. Skill directories ar
 to `.codex/skills/` and agent files/directories to `.codex/agents/` inside each isolated
 trial workspace. Plan-relative prompt files are supported, but private prompts must stay
 outside this repository.
+
+`routing-delegation-v1.json` covers positive, negative and ambiguous skill routing plus
+correct/false/missed agent delegation, nested delegation, invoked tools and context
+isolation. Correct versus missed outcomes are derived from expected/observed sets;
+negative cases count any observed activation or delegation as false. Replace provenance
+placeholders and executor version before recording a real run.

@@ -106,6 +106,79 @@ public sealed class EvaluationRunnerTests
         Assert.False(Assert.Single(summary.Trials).Passed);
     }
 
+    [Fact]
+    public async Task MeasuresRoutingDelegationToolsNestingAndIsolation()
+    {
+        using var environment = new RunnerEnvironment();
+        var scenario = RunnerTestSupport.Scenario() with
+        {
+            Expected = new ScenarioExpectations
+            {
+                ActivatedSkills = ["expected-skill"],
+                ActivationCase = RoutingCase.ShouldActivate,
+                DelegationCase = RoutingCase.ShouldNotActivate,
+                InvokedTools = ["repo locate"],
+                NestedDelegation = true,
+                ContextIsolation = true
+            }
+        };
+        var plan = RunnerTestSupport.Plan("fixture") with { Scenarios = [scenario] };
+        var executor = new RecordingExecutor
+        {
+            Result = new ExecutionResult
+            {
+                ExitCode = 0,
+                TimedOut = false,
+                Response = "ok",
+                StandardOutput = "",
+                StandardError = "",
+                Elapsed = TimeSpan.FromMilliseconds(5),
+                Usage = new ExecutionUsage { ToolCalls = 1 },
+                Observations = new ExecutionObservations
+                {
+                    ActivatedSkills = ["unexpected-skill"],
+                    DelegatedAgents = ["reviewer"],
+                    InvokedTools = ["repo locate"],
+                    MaximumDelegationDepth = 2,
+                    ContextIsolated = true
+                }
+            }
+        };
+
+        await new EvaluationRunner(executor, new EvaluationJudge(executor))
+            .RunAsync(plan, environment.Options(reuse: false));
+
+        var path = Path.Combine(environment.Raw, plan.Suite, "records", scenario.Id, "vanilla", "1.json");
+        var record = EvaluationRecordJson.Deserialize(await File.ReadAllTextAsync(path));
+        Assert.NotNull(record);
+        Assert.Equal(1, record.Quality.Activation.False.Value);
+        Assert.Equal(1, record.Quality.Activation.Missed.Value);
+        Assert.Equal(1, record.Quality.Delegation.False.Value);
+        Assert.Equal(1, record.Quality.InvokedTools!.Correctness.Value);
+        Assert.Equal(GateOutcome.Pass, record.Quality.NestedDelegation.Outcome);
+        Assert.Equal(GateOutcome.Pass, record.Quality.ContextIsolation);
+    }
+
+    [Fact]
+    public async Task LeavesAmbiguousRoutingUnscored()
+    {
+        using var environment = new RunnerEnvironment();
+        var scenario = RunnerTestSupport.Scenario() with
+        {
+            Expected = new ScenarioExpectations { ActivationCase = RoutingCase.Ambiguous }
+        };
+        var plan = RunnerTestSupport.Plan("fixture") with { Scenarios = [scenario] };
+
+        await new EvaluationRunner(new RecordingExecutor(), new EvaluationJudge(new RecordingExecutor()))
+            .RunAsync(plan, environment.Options(reuse: false));
+
+        var path = Path.Combine(environment.Raw, plan.Suite, "records", scenario.Id, "vanilla", "1.json");
+        var record = EvaluationRecordJson.Deserialize(await File.ReadAllTextAsync(path));
+        Assert.NotNull(record);
+        Assert.Equal(MeasurementKind.Unavailable, record.Quality.Activation.Correctness.Kind);
+        Assert.Equal(MeasurementKind.Unavailable, record.Quality.Activation.False.Kind);
+    }
+
     private sealed class RecordingExecutor : IEvaluationExecutor
     {
         public List<ExecutionRequest> Calls { get; } = [];
