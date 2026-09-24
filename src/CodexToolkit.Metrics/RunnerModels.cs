@@ -5,7 +5,8 @@ public sealed record ExecutionRequest(
     string Workspace,
     RunnerProvider Provider,
     TimeSpan Timeout,
-    string Sandbox = "workspace-write");
+    string Sandbox = "workspace-write",
+    bool ContextIsolated = false);
 
 public sealed record ExecutionResult
 {

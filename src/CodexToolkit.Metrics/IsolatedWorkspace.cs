@@ -11,9 +11,10 @@ public sealed class IsolatedWorkspace : IDisposable
         EvaluationArmDefinition arm,
         string planDirectory)
     {
-        var root = System.IO.Path.Combine(
-            System.IO.Path.GetTempPath(),
-            $"codex-toolkit-metrics-{Guid.NewGuid():N}");
+        var workspaceRoot = System.IO.Path.Combine(
+            Environment.CurrentDirectory, "data", "private", ".workspaces");
+        Directory.CreateDirectory(workspaceRoot);
+        var root = System.IO.Path.Combine(workspaceRoot, $"codex-toolkit-metrics-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
 
         try

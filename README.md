@@ -69,6 +69,23 @@ one for this broad baseline; compatible raw trials can be reused. `aggregate-bas
 reads only validated private evaluation records, rejects mixed toolkit revisions, and
 emits a schema-validated reviewed aggregate without prompts, responses, logs, or paths.
 
+`agent-capability-evaluation-v1.json` consumes the toolkit's native-agent audit and
+capability-routing cases through evaluator-only role instructions. Scenario-specific arm
+selection compares native/no-custom, current or historical custom, and candidate behavior
+without installing candidate agents into the toolkit. Synthetic evidence is embedded in
+the bounded prompt because nested Codex sandboxes may not permit a second shell sandbox.
+The reviewed recommendation policy uses only the public disposition vocabulary and the
+aggregate command verifies that every cited scenario/arm has a validated private record.
+
+```console
+dotnet run --project src/CodexToolkit.Metrics -- aggregate-agent-capability \
+  data/private/agent-capability-v1-evidence scenarios/agent-recommendations-v1.json \
+  data/public/agent-capability-evaluation.json <toolkit-sha>
+dotnet run --project src/CodexToolkit.Metrics -- validate-agent-candidates \
+  ../codex-toolkit scenarios/agent-capability-evaluation-v1.json \
+  scenarios/agent-recommendations-v1.json
+```
+
 Judging has three explicit boundaries: deterministic assertions are implemented, the JEV
 path records a deferred/not-applicable semantic result, and the GPT path invokes a
 bounded OpenAI judge that must return a score in `[0,1]`. Full JEV judging is intentionally

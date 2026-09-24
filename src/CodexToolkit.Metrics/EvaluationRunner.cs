@@ -14,7 +14,10 @@ public sealed class EvaluationRunner(IEvaluationExecutor executor, IEvaluationJu
 
         foreach (var scenario in plan.Scenarios)
         {
-            foreach (var arm in plan.Arms)
+            var scenarioArms = scenario.ArmIds.Count == 0
+                ? plan.Arms
+                : plan.Arms.Where(arm => scenario.ArmIds.Contains(arm.Id, StringComparer.Ordinal)).ToArray();
+            foreach (var arm in scenarioArms)
             {
                 var hash = await CompatibilityHasher.ComputeAsync(
                     plan, scenario, arm, planDirectory, cancellationToken);
@@ -92,11 +95,18 @@ public sealed class EvaluationRunner(IEvaluationExecutor executor, IEvaluationJu
         using var workspace = IsolatedWorkspace.Create(plan.FixtureRoot, arm, planDirectory);
         var prompt = scenario.Prompt ?? await File.ReadAllTextAsync(
             CompatibilityHasher.Resolve(planDirectory, scenario.PromptFile!), cancellationToken);
+        if (arm.InstructionFile is not null)
+        {
+            var instructions = await File.ReadAllTextAsync(
+                CompatibilityHasher.Resolve(planDirectory, arm.InstructionFile), cancellationToken);
+            prompt = $"<evaluator-controlled-role>\n{instructions.Trim()}\n</evaluator-controlled-role>\n\n{prompt}";
+        }
         ExecutionResult execution;
         try
         {
             execution = await executor.ExecuteAsync(new ExecutionRequest(
-                prompt, workspace.Path, plan.Executor, TimeSpan.FromSeconds(plan.TimeoutSeconds)), cancellationToken);
+                prompt, workspace.Path, plan.Executor, TimeSpan.FromSeconds(plan.TimeoutSeconds),
+                arm.Sandbox, arm.ContextIsolated), cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

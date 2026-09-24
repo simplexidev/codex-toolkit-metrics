@@ -192,6 +192,10 @@ function renderView(view) {
     ? [...latestMetrics.keys()]
     : view === "pre-optimization"
       ? [...latestMetrics.keys()].filter(name => name.startsWith("dotnet-") || name.startsWith("agents-"))
+    : view === "agents"
+      ? [...latestMetrics.keys()].filter(name => name.startsWith("agent-") || metricCatalog[name]?.view === view)
+    : view === "routing-delegation"
+      ? [...latestMetrics.keys()].filter(name => name.startsWith("routing-") || metricCatalog[name]?.view === view)
     : Object.entries(metricCatalog).filter(([, definition]) => definition.view === view).map(([name]) => name);
   const grid = element("div", "metrics-grid");
   names.forEach(name => grid.append(metricCard(name, latestMetrics.get(name))));

@@ -4,6 +4,7 @@
     "history-baseline.json",
     "example-summary.json",
     "static-cost-routing.json",
-    "pre-optimization-baseline.json"
+    "pre-optimization-baseline.json",
+    "agent-capability-evaluation.json"
   ]
 }

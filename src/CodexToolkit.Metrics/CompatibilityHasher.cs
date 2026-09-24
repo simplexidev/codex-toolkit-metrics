@@ -6,7 +6,7 @@ namespace CodexToolkit.Metrics;
 
 public static class CompatibilityHasher
 {
-    public const string Version = "runner-v2";
+    public const string Version = "runner-v3";
 
     public static async Task<string> ComputeAsync(
         EvaluationPlan plan,
@@ -34,6 +34,11 @@ public static class CompatibilityHasher
         foreach (var path in arm.SkillPaths.Concat(arm.AgentPaths).Order(StringComparer.Ordinal))
         {
             await AddPathAsync(hash, Resolve(planDirectory, path), cancellationToken);
+        }
+
+        if (arm.InstructionFile is not null)
+        {
+            await AddPathAsync(hash, Resolve(planDirectory, arm.InstructionFile), cancellationToken);
         }
 
         if (scenario.PromptFile is not null)

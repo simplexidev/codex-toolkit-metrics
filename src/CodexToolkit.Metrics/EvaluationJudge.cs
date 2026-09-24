@@ -119,6 +119,7 @@ public sealed class EvaluationJudge(IEvaluationExecutor executor) : IEvaluationJ
             "scenario metadata and deterministic results. Return JSON only: " +
             "{\"pass\":true|false,\"score\":0.0-1.0}.\n" +
             $"Scenario: {scenario.Id}\nCapability: {scenario.Capability}\n" +
+            $"Rubric: {scenario.Expected.SemanticRubric ?? "Satisfy the scenario accurately and without unsupported claims."}\n" +
             $"Assertions: {JsonSerializer.Serialize(assertions, EvaluationRecordJson.Options)}\n" +
             $"Response:\n{boundedResponse}";
     }

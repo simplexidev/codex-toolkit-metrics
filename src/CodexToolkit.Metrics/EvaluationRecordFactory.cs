@@ -27,7 +27,7 @@ public static class EvaluationRecordFactory
                 Scenario = scenario.Id,
                 Capability = scenario.Capability,
                 Skill = Names(arm.SkillPaths),
-                Agent = Names(arm.AgentPaths),
+                Agent = arm.Role ?? Names(arm.AgentPaths),
                 Arm = arm.Id,
                 Executor = new ExecutorIdentity { Model = plan.Executor.Model, Reasoning = plan.Executor.Reasoning },
                 Judge = new JudgeIdentity

@@ -23,6 +23,11 @@ public static class MetricsCli
             return await AggregateBaselineAsync(args, output, error, cancellationToken);
         }
 
+        if (args.Length >= 5 && args[0] == "aggregate-agent-capability")
+        {
+            return await AggregateAgentCapabilityAsync(args, output, error, cancellationToken);
+        }
+
         if (args.Length == 2 && args[0] == "validate-plan")
         {
             var loaded = await EvaluationPlanLoader.LoadAsync(args[1], cancellationToken);
@@ -33,6 +38,18 @@ public static class MetricsCli
             }
 
             foreach (var validationError in loaded.Errors) await error.WriteLineAsync(validationError);
+            return 1;
+        }
+
+        if (args.Length == 4 && args[0] == "validate-agent-candidates")
+        {
+            var result = await ToolkitMetadataValidator.ValidateAsync(args[1], args[2], args[3], cancellationToken);
+            if (result.IsValid)
+            {
+                await output.WriteLineAsync("Agent candidate plan and recommendations align with toolkit metadata.");
+                return 0;
+            }
+            foreach (var validationError in result.Errors) await error.WriteLineAsync(validationError);
             return 1;
         }
 
@@ -103,13 +120,54 @@ public static class MetricsCli
         await output.WriteLineAsync("Codex Toolkit Metrics");
         await output.WriteLineAsync("  run <plan.json> [--raw-dir <directory>] [--reuse-baseline]");
         await output.WriteLineAsync("  aggregate-baseline <raw-directory> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
+        await output.WriteLineAsync("  aggregate-agent-capability <raw-directory> <recommendations.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
+        await output.WriteLineAsync("  validate-agent-candidates <toolkit-directory> <plan.json> <recommendations.json>");
         await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
         await output.WriteLineAsync("  dashboard-check <dashboard-directory>");
         await output.WriteLineAsync("  publish-pages <dashboard-directory> <public-data-directory> <output-directory>");
         await output.WriteLineAsync("  measure-static <toolkit-directory> [--output <report.json>] [--public-output <aggregate.json>]");
         return args.Length == 0 || (args.Length == 1 && args[0] is "help" or "--help" or "-h") ? 0 : 2;
+    }
+
+    private static async Task<int> AggregateAgentCapabilityAsync(
+        string[] args,
+        TextWriter output,
+        TextWriter error,
+        CancellationToken cancellationToken)
+    {
+        var generatedAt = DateTimeOffset.UtcNow;
+        for (var index = 5; index < args.Length; index++)
+        {
+            if (args[index] == "--generated-at" && index + 1 < args.Length &&
+                DateTimeOffset.TryParse(args[++index], out var parsed)) generatedAt = parsed;
+            else
+            {
+                await error.WriteLineAsync($"Unknown, incomplete, or invalid aggregate-agent-capability option: {args[index]}");
+                return 2;
+            }
+        }
+
+        try
+        {
+            var json = await AgentCapabilityAggregator.AggregateAsync(
+                args[1], args[2], args[4], generatedAt, cancellationToken);
+            await WriteAsync(args[3], json, cancellationToken);
+            var validation = await PublicMetricsValidator.ValidateFileAsync(args[3], cancellationToken);
+            if (!validation.IsValid)
+            {
+                foreach (var validationError in validation.Errors) await error.WriteLineAsync(validationError);
+                return 1;
+            }
+            await output.WriteLineAsync($"Sanitized agent/capability aggregate written to: {Path.GetFullPath(args[3])}");
+            return 0;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            await error.WriteLineAsync($"Agent/capability aggregation failed: {exception.Message}");
+            return 1;
+        }
     }
 
     private static async Task<int> AggregateBaselineAsync(

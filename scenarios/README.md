@@ -26,3 +26,11 @@ versus the current custom reviewer. The upstream checkout remains local at the r
 path declared by the plan; it is not vendored. Run with `--reuse-baseline` so exact
 compatibility matches are reused and changed inputs are rerun. The public synthetic
 fixture contains no private source; raw executor events and responses remain private.
+
+`agent-capability-evaluation-v1.json` is aligned to the sibling toolkit's
+`config/agent-candidates.json` scenarios and ambiguous routes from
+`config/capabilities.json`. Candidate instructions under `config/agents/` are evaluation
+overlays only; they are never installed as production agents. `armIds` limits each
+scenario to applicable comparators, and `semanticRubric` makes quality the first gate.
+`agent-recommendations-v1.json` is the reviewed, sanitized decision layer whose cited
+scenario/arm evidence must exist before aggregation succeeds.

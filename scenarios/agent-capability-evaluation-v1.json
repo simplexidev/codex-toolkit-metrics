@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "1.1",
+  "suite": "agent-capability-evaluation-v1",
+  "fixtureRoot": "fixtures/agent-candidates",
+  "repetitions": 1,
+  "timeoutSeconds": 300,
+  "executor": {
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "reasoning": "medium",
+    "version": "codex-cli-0.155.1"
+  },
+  "judge": { "path": "gpt", "provider": "openai", "model": "gpt-5.6-luna" },
+  "provenance": {
+    "toolkit": { "sha": "61349adbe767a24a31284088b32bfccf719af9d2", "version": "v2-agent-candidate-audit" },
+    "metrics": { "sha": "e7bb70754c808ece0190785c781711b0c1127fd7", "version": "agent-capability-evaluation-phase" },
+    "upstream": { "sha": null, "path": null }
+  },
+  "arms": [
+    { "id": "builtin", "role": "root-coordinator", "comparison": "VANILLA", "customization": "BUILTIN-or-NO-CUSTOM", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "generic", "role": "generic-subagent", "comparison": "VANILLA", "customization": "BUILTIN-or-NO-CUSTOM", "instructionFile": "config/agents/generic.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "current-reviewer", "role": "reviewer", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "../../codex-toolkit/agents/reviewer.toml", "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"], "sandbox": "read-only", "contextIsolated": true },
+    { "id": "historical-mapper", "role": "code-mapper", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "config/agents/code-mapper.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "historical-log-analyzer", "role": "log-analyzer", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "config/agents/log-analyzer.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "security-candidate", "role": "security-reviewer", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/security-reviewer.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "runtime-candidate", "role": "runtime-diagnostician", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/runtime-diagnostician.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "build-candidate", "role": "build-diagnostician", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/build-diagnostician.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "test-candidate", "role": "test-specialist", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/test-specialist.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "upstream-candidate", "role": "upstream-reviewer", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/upstream-reviewer.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "release-candidate", "role": "release-auditor", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/release-auditor.md", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "routing-native", "role": "root-coordinator", "comparison": "VANILLA", "customization": "BUILTIN-or-NO-CUSTOM", "sandbox": "read-only", "contextIsolated": true },
+    { "id": "routing-policy", "role": "routing-policy", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/routing-policy.md", "sandbox": "read-only", "contextIsolated": true }
+  ],
+  "scenarios": [
+    {
+      "id": "code-mapper-vs-built-in-explorer",
+      "capability": "repo-navigation-impact",
+      "armIds": ["generic", "historical-mapper"],
+      "prompt": "Bounded evidence: src/Orders/OrderService.cs calls IPricing.Price, implemented by src/Pricing/RegionalPricing.cs. tests/Orders.Tests/OrderServiceTests.cs covers the default region. Changing RegionalPricing.Price also affects src/Checkout/CheckoutService.cs. The exact-symbol inventory already contains these four paths. Return relevant paths, symbols, call relationships, affected consumers, and gaps. End with CASE: repository-map and include RegionalPricing.Price. Do not use tools or edit.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: repository-map", "RegionalPricing.Price"], "contextIsolation": true, "semanticRubric": "Accurately names the four bounded paths, the IPricing.Price relationship, both consumers, and avoids unsupported repository claims." }
+    },
+    {
+      "id": "reviewer-vs-security-reviewer",
+      "capability": "security",
+      "armIds": ["generic", "current-reviewer", "security-candidate"],
+      "prompt": "Bounded completed diff: argument-list process invocation was replaced with Process.Start(\"sh\", \"-c \\\"convert \" + request.FileName + \"\\\"\"). request.FileName comes from authenticated upload metadata. An unrelated null-check cleanup is correct. Review only this diff. End with CASE: security-review and include command injection. Do not use tools, edit, or execute anything.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: security-review", "command injection"], "contextIsolation": true, "semanticRubric": "Finds the shell command injection, explains attacker-controlled FileName and shell interpretation, ignores the correct null cleanup, and makes no unsupported findings." }
+    },
+    {
+      "id": "log-analyzer-vs-runtime-diagnostician",
+      "capability": "diagnostics",
+      "armIds": ["generic", "historical-log-analyzer", "runtime-candidate"],
+      "prompt": "Bounded runtime evidence: latency rose 120 ms to 1.8 s; CPU stayed 18%; allocation stayed flat; thread-pool queue rose 0 to 340; outbound HTTP duration stayed flat; 71% of sampled wait time is under SemaphoreSlim.WaitAsync in RefreshCache; no lock-owner or release-path evidence exists. Rank the leading hypothesis with evidence for and against and request exactly one discriminating next check. End with CASE: runtime-diagnosis and include SemaphoreSlim.WaitAsync. Do not use tools or collect data.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: runtime-diagnosis", "SemaphoreSlim.WaitAsync"], "contextIsolation": true, "semanticRubric": "Ranks semaphore contention as a hypothesis rather than proof, uses queue/wait evidence, rejects CPU/allocation/outbound HTTP as leading causes, and requests exactly one owner/release-path check." }
+    },
+    {
+      "id": "build-diagnostician",
+      "capability": "msbuild",
+      "armIds": ["builtin", "generic", "build-candidate"],
+      "prompt": "Bounded build evidence: earliest diagnostic is MSB4019 because imported eng/generated/Versions.props was not found; later projects report CS0006 missing metadata and 47 downstream compiler errors; the evaluated import condition is true. Identify the first cause, reject downstream noise, and give the smallest verification step. End with CASE: build-diagnosis and include MSB4019. Do not use tools or rerun.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: build-diagnosis", "MSB4019"], "contextIsolation": true, "semanticRubric": "Treats missing generated Versions.props under a true import condition as the first cause, labels CS0006/compiler messages downstream, and proposes a targeted generation/import verification." }
+    },
+    {
+      "id": "test-specialist",
+      "capability": "tests",
+      "armIds": ["builtin", "generic", "test-candidate"],
+      "prompt": "Bounded test evidence: Parser.Parse should reject a trailing escape character. The existing test calls Parser.Parse(\"abc\\\\\") but has no assertion. Give the behavior-discriminating assertion, smallest affected test scope, and false-pass explanation. End with CASE: test-specialist and include trailing escape. Do not use tools, edit, or run tests.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: test-specialist", "trailing escape"], "contextIsolation": true, "semanticRubric": "Requires an exception or explicit failure result for the trailing escape, explains why no assertion false-passes, and selects only the parser test/project scope." }
+    },
+    {
+      "id": "upstream-reviewer",
+      "capability": "dependencies",
+      "armIds": ["builtin", "generic", "upstream-candidate"],
+      "prompt": "Bounded upstream evidence: pinned identity changed a1b2c3d to d4e5f6a; API delta removes Widget.Create(string) and adds Widget.Create(WidgetOptions); license stays MIT and source URL is unchanged. Recommend accept, reject, or escalate using only compatibility and license evidence. End with CASE: upstream-review and include Widget.Create. Do not use tools or fetch content.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: upstream-review", "Widget.Create"], "contextIsolation": true, "semanticRubric": "Detects the breaking API removal, notes unchanged MIT/source facts without overclaiming license review, and escalates or rejects until consumers/compatibility are established." }
+    },
+    {
+      "id": "release-auditor",
+      "capability": "release-integrity",
+      "armIds": ["builtin", "generic", "release-candidate"],
+      "prompt": "Bounded release evidence: package version and tag equal 2.0.0; build, tests, SBOM, and package hashes reference commit 0123456; the required published checksum file is missing; no exception is documented. Give ready/not-ready, cite gate and identity evidence, and identify authority requirements. End with CASE: release-audit and include checksum. Do not use tools, publish, or mutate tags.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: release-audit", "checksum"], "contextIsolation": true, "semanticRubric": "Returns not-ready because the required checksum is missing, recognizes matching version/commit evidence, and does not waive, publish, or invent an exception." }
+    },
+    {
+      "id": "ambiguous-capability-routing",
+      "capability": "capability-routing",
+      "armIds": ["routing-native", "routing-policy"],
+      "prompt": "Route four cases through the lowest sufficient layer: (1) exact tracked path and project dependency lookup; (2) twelve issues remain after exact filtering and two semantically similar sanitized descriptions need ranking; (3) add one assertion to an existing test in its established framework; (4) independently review a security-sensitive completed diff crossing a shell-command trust boundary. For cases 1-4 output exactly one numbered route from DETERMINISTIC, JEV, AGENT, or CUSTOM_AGENT plus one short reason. End with CASE: capability-routing. Do not use tools.",
+      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["CASE: capability-routing", "DETERMINISTIC", "JEV", "AGENT", "CUSTOM_AGENT"], "activationCase": "ambiguous", "delegationCase": "ambiguous", "contextIsolation": true, "semanticRubric": "Routes exact lookup to DETERMINISTIC, sanitized post-filter issue ranking to JEV, the one-line test edit to AGENT, and the security-sensitive independent review to CUSTOM_AGENT." }
+    }
+  ]
+}

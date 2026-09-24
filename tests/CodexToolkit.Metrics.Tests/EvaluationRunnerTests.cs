@@ -179,6 +179,36 @@ public sealed class EvaluationRunnerTests
         Assert.Equal(MeasurementKind.Unavailable, record.Quality.Activation.False.Kind);
     }
 
+    [Fact]
+    public async Task AppliesEvaluatorInstructionsOnlyToSelectedArms()
+    {
+        using var environment = new RunnerEnvironment();
+        var instructions = Path.Combine(environment.Root, "candidate.md");
+        await File.WriteAllTextAsync(instructions, "candidate boundary");
+        var basePlan = RunnerTestSupport.Plan("fixture");
+        var candidate = basePlan.Arms[0] with
+        {
+            Id = "candidate",
+            Role = "test-specialist",
+            InstructionFile = instructions,
+            Sandbox = "read-only",
+            ContextIsolated = true
+        };
+        var skipped = basePlan.Arms[0] with { Id = "skipped" };
+        var scenario = RunnerTestSupport.Scenario() with { ArmIds = ["candidate"] };
+        var plan = basePlan with { Arms = [candidate, skipped], Scenarios = [scenario] };
+        var executor = new RecordingExecutor();
+
+        var summary = await new EvaluationRunner(executor, new EvaluationJudge(executor))
+            .RunAsync(plan, environment.Options(reuse: false));
+
+        Assert.Single(summary.Trials);
+        var call = Assert.Single(executor.Calls);
+        Assert.Contains("candidate boundary", call.Prompt, StringComparison.Ordinal);
+        Assert.Equal("read-only", call.Sandbox);
+        Assert.True(call.ContextIsolated);
+    }
+
     private sealed class RecordingExecutor : IEvaluationExecutor
     {
         public List<ExecutionRequest> Calls { get; } = [];
