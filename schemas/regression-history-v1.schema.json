@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/regression-history-v1.schema.json",
+  "title": "Codex Toolkit sanitized regression history",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "subject", "lineage", "acceptedBaseline", "gates", "deltas", "trends", "provenance"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "subject": { "type": "object", "additionalProperties": false, "required": ["repository", "revision"], "properties": { "repository": { "const": "simplexidev/codex-toolkit" }, "revision": { "pattern": "^[0-9a-fA-F]{7,64}$" } } },
+    "lineage": { "type": "object", "additionalProperties": false, "required": ["baselineRevision", "baselineMeasuredAt", "upstreamRevision", "metricsRevision"], "properties": { "baselineRevision": { "type": ["string", "null"] }, "baselineMeasuredAt": { "type": ["string", "null"] }, "upstreamRevision": { "type": ["string", "null"] }, "metricsRevision": { "type": ["string", "null"] } } },
+    "acceptedBaseline": { "type": "boolean" },
+    "gates": { "type": "array" }, "deltas": { "type": "array" }, "trends": { "type": "array" },
+    "provenance": { "type": "object" }
+  }
+}

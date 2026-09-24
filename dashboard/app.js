@@ -161,13 +161,15 @@ function renderHistory(container) {
   const table = element("table", "history-table");
   const head = element("thead");
   const headerRow = element("tr");
-  ["Measured", "Revision", "Scenarios", "Pass rate", "Approval"].forEach(label => headerRow.append(element("th", "", label)));
+  ["Measured", "Revision", "Scenarios", "Pass rate", "Quality trend", "Approval"].forEach(label => headerRow.append(element("th", "", label)));
   head.append(headerRow);
   const body = element("tbody");
   [...snapshots].reverse().forEach(item => {
     const row = element("tr");
     const rate = item.metrics.find(metric => metric.name === "scenario-pass-rate");
-    [new Date(item.generatedAt).toLocaleDateString(), item.subject.revision.slice(0, 12), `${item.scenarios.passed}/${item.scenarios.total}`, formatMetric(rate), item.provenance.approval]
+    const previous = snapshots[snapshots.indexOf(item) - 1]?.metrics.find(metric => metric.name === "scenario-pass-rate");
+    const trend = previous && rate ? `${rate.value >= previous.value ? "↑" : "↓"} ${(rate.value - previous.value).toFixed(3)}` : "Baseline";
+    [new Date(item.generatedAt).toLocaleDateString(), item.subject.revision.slice(0, 12), `${item.scenarios.passed}/${item.scenarios.total}`, formatMetric(rate), trend, item.provenance.approval]
       .forEach(value => row.append(element("td", "", value)));
     body.append(row);
   });
