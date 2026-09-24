@@ -50,6 +50,7 @@ dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.j
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
 dotnet run --project src/CodexToolkit.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
+dotnet run --project src/CodexToolkit.Metrics -- aggregate-v2-acceptance /private/evaluation/path data/public/pre-optimization-baseline.json data/public/v2-acceptance.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
@@ -76,6 +77,13 @@ without installing candidate agents into the toolkit. Synthetic evidence is embe
 the bounded prompt because nested Codex sandboxes may not permit a second shell sandbox.
 The reviewed recommendation policy uses only the public disposition vocabulary and the
 aggregate command verifies that every cited scenario/arm has a validated private record.
+
+`v2-acceptance-v1.json` reruns the optimized toolkit arm over the compatible bounded
+pre-v2 capability cases and three agent-boundary cases. `aggregate-v2-acceptance` compares
+those validated private records with the reviewed vanilla/upstream baseline. It publishes
+quality gates before efficiency, separates skill and agent pass rates, and makes missing
+files/context, build/test classification, and JEV false-exclusion or avoided-context
+evidence visible as coverage gaps rather than inferred zero-cost success.
 
 ```console
 dotnet run --project src/CodexToolkit.Metrics -- aggregate-agent-capability \

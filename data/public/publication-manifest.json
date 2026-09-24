@@ -5,6 +5,8 @@
     "example-summary.json",
     "static-cost-routing.json",
     "pre-optimization-baseline.json",
-    "agent-capability-evaluation.json"
+    "agent-capability-evaluation.json",
+    "static-cost-routing-v2.json",
+    "v2-acceptance.json"
   ]
 }

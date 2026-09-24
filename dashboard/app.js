@@ -32,6 +32,24 @@ const metricCatalog = {
   "delegation-rate": { label: "Delegation rate", view: "routing-delegation" }
 };
 
+const acceptanceMetricCatalog = {
+  "acceptance-scenario-coverage": "Acceptance scenario coverage",
+  "pre-v2-scenario-pass-rate": "Pre-v2 scenario pass rate",
+  "vanilla-skill-pass-rate": "Vanilla skill pass rate",
+  "upstream-skill-pass-rate": "Upstream skill pass rate",
+  "optimized-skill-pass-rate": "Optimized skill pass rate",
+  "optimized-agent-pass-rate": "Optimized agent pass rate",
+  "deterministic-resolution-rate": "Deterministic resolution rate",
+  "jev-remote-calls": "JEV remote calls",
+  "jev-fallbacks": "JEV fallbacks",
+  "jev-escalations": "JEV escalations",
+  "jev-false-exclusion-coverage": "JEV false-exclusion coverage",
+  "jev-context-avoided-coverage": "JEV avoided-context coverage"
+};
+for (const [name, label] of Object.entries(acceptanceMetricCatalog)) {
+  metricCatalog[name] = { label, view: "v2-acceptance" };
+}
+
 const baselineMetricCatalog = {
   "dotnet-vanilla-pass-rate": "Vanilla .NET pass rate",
   "dotnet-upstream-pass-rate": "Upstream .NET pass rate",
@@ -46,6 +64,7 @@ const viewCopy = {
   overview: ["Overview", "The newest available value for every published measurement."],
   skills: ["Skills", "Activation quality and the size of the runtime skill surface."],
   agents: ["Agents", "Delegation outcomes, context isolation, and agent inventory."],
+  "v2-acceptance": ["v2 Acceptance", "Quality-first comparison of the reviewed baseline with the optimized toolkit candidate."],
   "pre-optimization": ["Pre-optimization", "Reusable skill and agent baselines captured before the v2 optimization phases."],
   models: ["Models", "Policy compliance for OpenAI/GPT-only execution and judging."],
   "token-efficiency": ["Token Efficiency", "Context paid up front, on activation, and at maximum load."],
@@ -196,6 +215,8 @@ function renderView(view) {
       ? [...latestMetrics.keys()].filter(name => name.startsWith("dotnet-") || name.startsWith("agents-"))
     : view === "agents"
       ? [...latestMetrics.keys()].filter(name => name.startsWith("agent-") || metricCatalog[name]?.view === view)
+    : view === "v2-acceptance"
+      ? [...latestMetrics.keys()].filter(name => metricCatalog[name]?.view === view || name.startsWith("optimized-"))
     : view === "routing-delegation"
       ? [...latestMetrics.keys()].filter(name => name.startsWith("routing-") || metricCatalog[name]?.view === view)
     : Object.entries(metricCatalog).filter(([, definition]) => definition.view === view).map(([name]) => name);
