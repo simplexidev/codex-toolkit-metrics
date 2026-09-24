@@ -2,12 +2,12 @@
 
 Schema artifacts use a stable family name plus a major version in the filename, and a
 semantic version in each document's `schemaVersion` field. For example,
-`evaluation-record-v1.schema.json` accepts `schemaVersion` `1.0.0` and `1.1.0`.
-The latter adds optional tool-invocation and context-isolation measurements. Evaluation
-plan v1 likewise accepts `1.0` and `1.1`; the latter adds explicit routing cases, invoked
-tools, nested delegation and context-isolation expectations.
+`evaluation-record-v1.schema.json` accepts `schemaVersion` `1.0.0`, `1.1.0`, and `1.2.0`.
+Version 1.1 adds optional tool-invocation and context-isolation measurements; 1.2 adds
+separate optional JEV-call and GPT-judge-token measurements. Evaluation plan v1 accepts
+`1.0`, `1.1`, and `1.2`; version 1.2 adds bounded JEV settings and an OpenAI GPT fallback.
 Runner inputs use the separately versioned `evaluation-plan-v1.schema.json` family and
-currently accept plan `schemaVersion` `1.0`.
+currently emit plan `schemaVersion` `1.2`.
 
 - Patch versions clarify validation without changing the accepted data shape.
 - Minor versions add backward-compatible optional fields or enum values.
@@ -25,3 +25,5 @@ The v1 dashboard aggregate schema is independent from the evaluation-record fami
 remains supported until a separately versioned public aggregation phase replaces it.
 The detailed keyless analyzer output conforms to `static-cost-report-v1.schema.json`;
 only its sanitized aggregate projection belongs under `data/public/`.
+The `judge-calibration-v1` schema bounds paired live calibration to 50 labeled examples;
+the example texts and resulting observation report remain private.

@@ -76,6 +76,16 @@ public sealed record JudgeResult
     public required string Method { get; init; }
     public string? Failure { get; init; }
     public ExecutionUsage Usage { get; init; } = new();
+    public JevUsage JevUsage { get; init; } = new();
+    public decimal? Confidence { get; init; }
+    public bool Escalated { get; init; }
+}
+
+public sealed record JevUsage
+{
+    public int Invocations { get; init; }
+    public int RemoteCalls { get; init; }
+    public int Fallbacks { get; init; }
 }
 
 public sealed record TrialSummary

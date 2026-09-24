@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "identity", "arm", "quality", "efficiency", "jev", "staticCost", "statistics"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0.0", "1.1.0"] },
+    "schemaVersion": { "enum": ["1.0.0", "1.1.0", "1.2.0"] },
     "identity": { "$ref": "#/$defs/identity" },
     "arm": { "$ref": "#/$defs/arm" },
     "quality": { "$ref": "#/$defs/quality" },
@@ -185,7 +185,11 @@
         "targetedBuilds": { "$ref": "#/$defs/numericMetric" },
         "fullTests": { "$ref": "#/$defs/numericMetric" },
         "targetedTests": { "$ref": "#/$defs/numericMetric" },
-        "elapsedTime": { "$ref": "#/$defs/numericMetric" }
+        "elapsedTime": { "$ref": "#/$defs/numericMetric" },
+        "jevJudgeCalls": { "$ref": "#/$defs/numericMetric" },
+        "gptJudgeInputTokens": { "$ref": "#/$defs/numericMetric" },
+        "gptJudgeOutputTokens": { "$ref": "#/$defs/numericMetric" },
+        "gptJudgeTotalTokens": { "$ref": "#/$defs/numericMetric" }
       }
     },
     "jev": {

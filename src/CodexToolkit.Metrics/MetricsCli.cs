@@ -18,6 +18,16 @@ public static class MetricsCli
             return await RunEvaluationAsync(args, output, error, cancellationToken);
         }
 
+        if (args.Length >= 3 && args[0] == "calibrate-judges")
+        {
+            return await CalibrateJudgesAsync(args, output, error, cancellationToken);
+        }
+
+        if (args.Length == 2 && args[0] == "validate-calibration")
+        {
+            return await ValidateCalibrationAsync(args[1], output, error, cancellationToken);
+        }
+
         if (args.Length >= 4 && args[0] == "aggregate-baseline")
         {
             return await AggregateBaselineAsync(args, output, error, cancellationToken);
@@ -119,6 +129,8 @@ public static class MetricsCli
 
         await output.WriteLineAsync("Codex Toolkit Metrics");
         await output.WriteLineAsync("  run <plan.json> [--raw-dir <directory>] [--reuse-baseline]");
+        await output.WriteLineAsync("  calibrate-judges <examples.json> <private-report.json> --live [--public-output <aggregate.json> --toolkit-revision <sha>]");
+        await output.WriteLineAsync("  validate-calibration <examples.json>");
         await output.WriteLineAsync("  aggregate-baseline <raw-directory> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  aggregate-agent-capability <raw-directory> <recommendations.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
@@ -297,7 +309,8 @@ public static class MetricsCli
         try
         {
             var executor = new CodexCliExecutor();
-            var runner = new EvaluationRunner(executor, new EvaluationJudge(executor));
+            using var http = new HttpClient();
+            var runner = new EvaluationRunner(executor, new EvaluationJudge(executor, new HttpJevEvaluationClient(http)));
             var summary = await runner.RunAsync(
                 loaded.Plan,
                 new EvaluationRunOptions(planPath, rawDirectory, reuse),
@@ -311,6 +324,89 @@ public static class MetricsCli
         catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException)
         {
             await error.WriteLineAsync($"Evaluation run failed: {exception.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task<int> CalibrateJudgesAsync(
+        string[] args, TextWriter output, TextWriter error, CancellationToken cancellationToken)
+    {
+        var live = false;
+        string? publicOutput = null;
+        string? toolkitRevision = null;
+        for (var index = 3; index < args.Length; index++)
+        {
+            if (args[index] == "--live") live = true;
+            else if (args[index] == "--public-output" && index + 1 < args.Length) publicOutput = args[++index];
+            else if (args[index] == "--toolkit-revision" && index + 1 < args.Length) toolkitRevision = args[++index];
+            else
+            {
+                await error.WriteLineAsync($"Unknown or incomplete calibrate-judges option: {args[index]}");
+                return 2;
+            }
+        }
+        if (!live)
+        {
+            await error.WriteLineAsync("Live calibration is optional and must be explicitly enabled with --live.");
+            return 2;
+        }
+        if ((publicOutput is null) != (toolkitRevision is null) ||
+            (toolkitRevision is not null && (toolkitRevision.Length is < 7 or > 64 || !toolkitRevision.All(Uri.IsHexDigit))))
+        {
+            await error.WriteLineAsync("--public-output and a 7-64 character hexadecimal --toolkit-revision must be supplied together.");
+            return 2;
+        }
+        var privatePath = Path.GetFullPath(args[2]);
+        if ((privatePath.Replace(Path.DirectorySeparatorChar, '/') + "/").Contains("/data/public/", StringComparison.OrdinalIgnoreCase))
+        {
+            await error.WriteLineAsync("Example-level calibration reports must not be written under data/public.");
+            return 2;
+        }
+        try
+        {
+            var json = await File.ReadAllTextAsync(args[1], cancellationToken);
+            var plan = System.Text.Json.JsonSerializer.Deserialize<CalibrationPlan>(json, EvaluationRecordJson.Options)
+                ?? throw new InvalidOperationException("Calibration plan must be an object.");
+            using var http = new HttpClient();
+            var report = await new JudgeCalibration(new HttpJevEvaluationClient(http), new CodexCliExecutor())
+                .RunAsync(plan, cancellationToken);
+            await WriteAsync(privatePath, System.Text.Json.JsonSerializer.Serialize(report, EvaluationRecordJson.Options), cancellationToken);
+            if (publicOutput is not null)
+            {
+                await WriteAsync(publicOutput, JudgeCalibration.PublicAggregate(report, toolkitRevision!), cancellationToken);
+                var validation = await PublicMetricsValidator.ValidateFileAsync(publicOutput, cancellationToken);
+                if (!validation.IsValid)
+                {
+                    foreach (var validationError in validation.Errors) await error.WriteLineAsync(validationError);
+                    return 1;
+                }
+            }
+            await output.WriteLineAsync($"Calibration: {report.Agreements} agreements, {report.Disagreements} disagreements, {report.Escalations} escalations.");
+            await output.WriteLineAsync($"Private calibration report: {privatePath}");
+            return 0;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            await error.WriteLineAsync($"Judge calibration failed: {exception.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task<int> ValidateCalibrationAsync(
+        string path, TextWriter output, TextWriter error, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(path, cancellationToken);
+            var plan = System.Text.Json.JsonSerializer.Deserialize<CalibrationPlan>(json, EvaluationRecordJson.Options)
+                ?? throw new InvalidOperationException("Calibration plan must be an object.");
+            JudgeCalibration.ValidatePlan(plan);
+            await output.WriteLineAsync($"Valid bounded judge calibration plan: {path}");
+            return 0;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            await error.WriteLineAsync($"Invalid judge calibration plan: {exception.Message}");
             return 1;
         }
     }

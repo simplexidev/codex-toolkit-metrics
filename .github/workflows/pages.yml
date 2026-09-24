@@ -26,11 +26,11 @@ jobs:
       - run: dotnet restore CodexToolkit.Metrics.slnx
       - run: dotnet build CodexToolkit.Metrics.slnx --no-restore
       - run: dotnet test CodexToolkit.Metrics.slnx --no-build
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _site
+      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _pages
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: _pages
 
   deploy:
     environment:

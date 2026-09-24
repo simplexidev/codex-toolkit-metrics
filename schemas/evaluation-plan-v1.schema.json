@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "suite", "fixtureRoot", "repetitions", "timeoutSeconds", "executor", "judge", "provenance", "arms", "scenarios"],
   "properties": {
-    "schemaVersion": { "enum": ["1.0", "1.1"] },
+    "schemaVersion": { "enum": ["1.0", "1.1", "1.2"] },
     "suite": { "$ref": "#/$defs/name" },
     "fixtureRoot": { "$ref": "#/$defs/name" },
     "repetitions": { "type": "integer", "minimum": 1 },
@@ -19,13 +19,19 @@
       "properties": {
         "path": { "enum": ["deterministic", "jev", "gpt"] },
         "provider": { "type": "string" },
-        "model": { "$ref": "#/$defs/name" }
+        "model": { "$ref": "#/$defs/name" },
+        "jev": { "$ref": "#/$defs/jevJudge" }
       },
       "allOf": [
         {
-          "if": { "properties": { "path": { "const": "gpt" } }, "required": ["path"] },
+          "if": { "properties": { "path": { "enum": ["gpt", "jev"] } }, "required": ["path"] },
           "then": { "required": ["provider", "model"], "properties": { "provider": { "const": "openai" } } },
-          "else": { "not": { "anyOf": [{ "required": ["provider"] }, { "required": ["model"] }] } }
+          "else": { "not": { "anyOf": [{ "required": ["provider"] }, { "required": ["model"] }, { "required": ["jev"] }] } }
+        },
+        {
+          "if": { "properties": { "path": { "const": "jev" } }, "required": ["path"] },
+          "then": { "required": ["jev"] },
+          "else": { "not": { "required": ["jev"] } }
         }
       ]
     },
@@ -121,6 +127,18 @@
     "name": { "type": "string", "minLength": 1 },
     "paths": { "type": "array", "items": { "$ref": "#/$defs/name" } },
     "routingCase": { "enum": ["unspecified", "should-activate", "should-not-activate", "ambiguous"] },
+    "jevJudge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiUrl": { "type": "string", "format": "uri", "pattern": "^https://" },
+        "model": { "$ref": "#/$defs/name" },
+        "timeoutSeconds": { "type": "integer", "minimum": 1, "maximum": 120 },
+        "maxInputBytes": { "type": "integer", "minimum": 256, "maximum": 65536 },
+        "minConfidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "passScore": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
     "provider": {
       "type": "object",
       "additionalProperties": false,

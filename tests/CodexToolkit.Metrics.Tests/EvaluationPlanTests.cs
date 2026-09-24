@@ -50,7 +50,27 @@ public sealed class EvaluationPlanTests
         };
 
         Assert.Contains(EvaluationPlanLoader.Validate(plan), error =>
-            error.Contains("only valid for the gpt", StringComparison.Ordinal));
+            error.Contains("only valid for gpt or jev", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void JevJudgeRequiresOpenAiFallbackAndSafeBoundedConfiguration()
+    {
+        var plan = RunnerTestSupport.Plan("fixture") with
+        {
+            Judge = new JudgeConfiguration
+            {
+                Path = JudgingPath.Jev,
+                Provider = "anthropic",
+                Model = "claude",
+                Jev = new JevJudgeConfiguration { ApiUrl = "http://example.invalid", MaxInputBytes = 100 }
+            }
+        };
+
+        var errors = EvaluationPlanLoader.Validate(plan);
+        Assert.Contains(errors, error => error.Contains("OpenAI", StringComparison.Ordinal));
+        Assert.Contains(errors, error => error.Contains("HTTPS", StringComparison.Ordinal));
+        Assert.Contains(errors, error => error.Contains("maxInputBytes", StringComparison.Ordinal));
     }
 
     [Fact]

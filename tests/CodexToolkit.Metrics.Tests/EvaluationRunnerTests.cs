@@ -24,6 +24,8 @@ public sealed class EvaluationRunnerTests
         var record = EvaluationRecordJson.Deserialize(await File.ReadAllTextAsync(recordPath));
         Assert.NotNull(record);
         Assert.Equal(MeasurementKind.Unavailable, record.Efficiency.GptInputTokens.Kind);
+        Assert.Equal(0, record.Efficiency.JevJudgeCalls!.Value);
+        Assert.Equal(MeasurementKind.Unavailable, record.Efficiency.GptJudgeTotalTokens!.Kind);
         Assert.Equal(2, record.Statistics.Summaries[0].Repetitions.Value);
         Assert.True(EvaluationRecordValidator.Validate(record).IsValid);
     }
