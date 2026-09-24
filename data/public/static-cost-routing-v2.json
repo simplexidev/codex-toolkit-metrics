@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-09-24T09:44:15.7832035+00:00",
+  "subject": {
+    "repository": "simplexidev/codex-toolkit",
+    "revision": "5a4b35e5ccd96392e91a11c4048c4497cdcee655"
+  },
+  "scenarios": {
+    "total": 0,
+    "passed": 0
+  },
+  "metrics": [
+    {
+      "name": "skill-count",
+      "value": 29,
+      "unit": "count",
+      "direction": "neutral",
+      "kind": "measured",
+      "method": "filesystem inventory"
+    },
+    {
+      "name": "custom-agent-count",
+      "value": 1,
+      "unit": "count",
+      "direction": "neutral",
+      "kind": "measured",
+      "method": "filesystem inventory"
+    },
+    {
+      "name": "skill-trigger-tokens",
+      "value": 838,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "always-visible-tokens",
+      "value": 711,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "activation-visible-tokens",
+      "value": 5495,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "lazy-reference-tokens",
+      "value": 311,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "maximum-possible-load-tokens",
+      "value": 5806,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "agent-configuration-tokens",
+      "value": 54,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "agent-instruction-tokens",
+      "value": 165,
+      "unit": "estimated-tokens",
+      "direction": "lower-is-better",
+      "kind": "estimated",
+      "method": "OpenAI GPT-family UTF-8 byte approximation (ceil(bytes/4)); no model tokenizer available"
+    },
+    {
+      "name": "mean-routing-overlap",
+      "value": 0.028580950738916256157635468,
+      "unit": "ratio",
+      "direction": "lower-is-better",
+      "kind": "derived",
+      "method": "pairwise Jaccard overlap of normalized skill trigger terms"
+    },
+    {
+      "name": "maximum-routing-overlap",
+      "value": 0.4,
+      "unit": "ratio",
+      "direction": "lower-is-better",
+      "kind": "derived",
+      "method": "maximum pairwise Jaccard overlap of normalized skill trigger terms"
+    }
+  ],
+  "provenance": {
+    "sourceRuns": 1,
+    "sanitized": true,
+    "approval": "reviewed"
+  }
+}

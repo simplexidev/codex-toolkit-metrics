@@ -38,3 +38,9 @@ overlays only; they are never installed as production agents. `armIds` limits ea
 scenario to applicable comparators, and `semanticRubric` makes quality the first gate.
 `agent-recommendations-v1.json` is the reviewed, sanitized decision layer whose cited
 scenario/arm evidence must exist before aggregation succeeds.
+
+`v2-acceptance-v1.json` is the bounded optimized-arm rerun for final v2 review. Its first
+14 cases align with the reviewed vanilla/upstream baseline and its final three cases
+exercise the retained reviewer boundary. One repetition limits cost; the public report
+must label efficiency comparisons as directional and may not claim distributional
+significance.
