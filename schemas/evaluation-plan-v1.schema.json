@@ -85,6 +85,7 @@
           "prompt": { "$ref": "#/$defs/name" },
           "promptFile": { "$ref": "#/$defs/name" },
           "armIds": { "$ref": "#/$defs/paths" },
+          "affectedPaths": { "$ref": "#/$defs/paths" },
           "expected": {
             "type": "object",
             "additionalProperties": false,

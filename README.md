@@ -136,6 +136,24 @@ and context isolation. Ambiguous cases are observed but left unscored.
 
 ## Develop
 
+## Regression history and affected evaluation
+
+Regression history preserves accepted baseline plus upstream and metrics revision lineage,
+then applies deterministic quality gates and efficiency deltas. It labels quality, tokens,
+tools, files/context, validation breadth, routing, delegation, JEV, and capability-coverage
+changes. Underpowered comparisons are explicitly `insufficient-sample`; bounded JEV may
+classify measured evidence but never invent numeric values.
+
+Scenarios may declare `affectedPaths` as repository-relative exact paths or `/**` prefixes.
+CI derives changed paths and validates deterministic affected selection without launching a
+live matrix. An empty diff intentionally selects the complete suite; full matrices remain
+manual or scheduled.
+
+```console
+dotnet run --project src/CodexToolkit.Metrics -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
+dotnet run --project src/CodexToolkit.Metrics -- validate-history data/public/regression-history.json
+```
+
 The repository requires the .NET SDK selected by `global.json`.
 
 ```console

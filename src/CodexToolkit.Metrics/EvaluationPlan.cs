@@ -74,6 +74,8 @@ public sealed record EvaluationScenario
     public string? Prompt { get; init; }
     public string? PromptFile { get; init; }
     public IReadOnlyList<string> ArmIds { get; init; } = [];
+    /// <summary>Repository-relative globs whose changes require this capability check.</summary>
+    public IReadOnlyList<string> AffectedPaths { get; init; } = [];
     public required ScenarioExpectations Expected { get; init; }
 }
 

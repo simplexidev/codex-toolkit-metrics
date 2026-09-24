@@ -51,6 +51,43 @@ public static class MetricsCli
             return 1;
         }
 
+        if (args.Length == 3 && args[0] == "select-affected")
+        {
+            var loaded = await EvaluationPlanLoader.LoadAsync(args[1], cancellationToken);
+            if (loaded.Plan is null || loaded.Errors.Count > 0)
+            {
+                foreach (var validationError in loaded.Errors) await error.WriteLineAsync(validationError);
+                return 1;
+            }
+            try
+            {
+                var paths = await AffectedCapabilitySelector.LoadChangedPathsAsync(args[2], cancellationToken);
+                var selection = AffectedCapabilitySelector.Select(loaded.Plan, paths);
+                await output.WriteLineAsync(System.Text.Json.JsonSerializer.Serialize(selection, EvaluationRecordJson.Options));
+                return 0;
+            }
+            catch (Exception exception) when (exception is IOException or InvalidOperationException or System.Text.Json.JsonException)
+            {
+                await error.WriteLineAsync($"Affected capability selection failed: {exception.Message}");
+                return 1;
+            }
+        }
+
+        if (args.Length == 2 && args[0] == "validate-history")
+        {
+            try
+            {
+                await RegressionHistory.LoadAsync(args[1], cancellationToken);
+                await output.WriteLineAsync($"Valid sanitized regression history: {args[1]}");
+                return 0;
+            }
+            catch (Exception exception) when (exception is IOException or InvalidOperationException or System.Text.Json.JsonException)
+            {
+                await error.WriteLineAsync($"Regression history validation failed: {exception.Message}");
+                return 1;
+            }
+        }
+
         if (args.Length == 4 && args[0] == "validate-agent-candidates")
         {
             var result = await ToolkitMetadataValidator.ValidateAsync(args[1], args[2], args[3], cancellationToken);
@@ -134,6 +171,8 @@ public static class MetricsCli
         await output.WriteLineAsync("  aggregate-baseline <raw-directory> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  aggregate-agent-capability <raw-directory> <recommendations.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
+        await output.WriteLineAsync("  select-affected <plan.json> <changed-paths.json>");
+        await output.WriteLineAsync("  validate-history <history.json>");
         await output.WriteLineAsync("  validate-agent-candidates <toolkit-directory> <plan.json> <recommendations.json>");
         await output.WriteLineAsync("  validate-evaluation <record.json>");
         await output.WriteLineAsync("  validate-public <aggregate.json>");
