@@ -6,7 +6,7 @@ namespace CodexToolkit.Metrics;
 
 public static class CompatibilityHasher
 {
-    public const string Version = "runner-v3";
+    public const string Version = "runner-v4";
 
     public static async Task<string> ComputeAsync(
         EvaluationPlan plan,

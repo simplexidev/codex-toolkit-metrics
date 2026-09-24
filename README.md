@@ -86,10 +86,29 @@ dotnet run --project src/CodexToolkit.Metrics -- validate-agent-candidates \
   scenarios/agent-recommendations-v1.json
 ```
 
-Judging has three explicit boundaries: deterministic assertions are implemented, the JEV
-path records a deferred/not-applicable semantic result, and the GPT path invokes a
-bounded OpenAI judge that must return a score in `[0,1]`. Full JEV judging is intentionally
-deferred.
+Judging follows a strict hierarchy. Failed deterministic assertions stop immediately;
+passing exact checks may proceed to a bounded JEV rubric. An accepted JEV score resolves
+the case, while unavailable or low-confidence JEV results escalate to the configured
+OpenAI GPT judge. Evaluation records keep JEV remote-call counts separate from GPT judge
+token usage. Plans using `judge.path: "jev"` configure an OpenAI fallback in
+`judge.provider`/`judge.model` and may override bounded JEV settings under `judge.jev`.
+The credential is read only from `TYPESAFE_API_KEY` at the HTTP authorization boundary.
+
+`judge-calibration-v1.json` supplies a small synthetic starting set. Live calibration is
+optional, explicit, and capped at 50 examples; normal tests use mocked JEV and GPT
+responses and require no key. The private report records per-example agreement,
+confidence, mismatch, escalation, JEV calls, and GPT usage. Optional public output
+contains only validated aggregate counts and rates. A confidence recommendation is
+emitted only when at least three observed examples achieve 90% expected-outcome accuracy.
+
+```console
+dotnet run --project src/CodexToolkit.Metrics -- calibrate-judges \
+  scenarios/judge-calibration-v1.json data/private/calibration/report.json --live
+```
+
+Pairwise GPT judging always evaluates both candidate orders. It reports a winner only
+when normalized decisions agree; consistent ties remain ties and position-sensitive or
+invalid results are explicit disagreements.
 
 ## Static cost and routing measurement
 

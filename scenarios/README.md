@@ -7,6 +7,10 @@ delegation behavior. Private source text and raw prompts do not belong here.
 The bootstrap fixture is intentionally synthetic. Future schema changes should be
 versioned and paired with evaluator tests and calibration evidence.
 
+`judge-calibration-v1.json` is a bounded synthetic live-calibration input, not a normal CI
+scenario. It sends each example to both JEV and the configured OpenAI GPT judge so
+agreement and confidence recommendations come from paired evidence.
+
 Runner plans select a fixture root, repetitions, timeout, OpenAI executor model, judging
 boundary, provenance, arms, and deterministic expectations. Skill directories are copied
 to `.codex/skills/` and agent files/directories to `.codex/agents/` inside each isolated

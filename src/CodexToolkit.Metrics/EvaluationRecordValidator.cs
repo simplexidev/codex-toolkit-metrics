@@ -39,9 +39,9 @@ public static class EvaluationRecordValidator
     {
         var errors = new List<string>();
 
-        if (record.SchemaVersion is not ("1.0.0" or EvaluationRecord.CurrentSchemaVersion))
+        if (record.SchemaVersion is not ("1.0.0" or "1.1.0" or EvaluationRecord.CurrentSchemaVersion))
         {
-            errors.Add($"$.schemaVersion must equal '1.0.0' or '{EvaluationRecord.CurrentSchemaVersion}'.");
+            errors.Add($"$.schemaVersion must equal '1.0.0', '1.1.0', or '{EvaluationRecord.CurrentSchemaVersion}'.");
         }
 
         ValidateIdentity(record.Identity, errors);
@@ -147,7 +147,7 @@ public static class EvaluationRecordValidator
 
         ValidateMetrics(quality, "$.quality", errors);
 
-        if (schemaVersion == EvaluationRecord.CurrentSchemaVersion)
+        if (schemaVersion is "1.1.0" or "1.2.0")
         {
             if (quality.InvokedTools is null) errors.Add("$.quality.invokedTools is required.");
             if (quality.ContextIsolation is null) errors.Add("$.quality.contextIsolation is required.");
@@ -239,7 +239,9 @@ public static class EvaluationRecordValidator
             {
                 ValidateMetrics(propertyValue, propertyPath, errors);
             }
-            else if (propertyValue is null && propertyPath is not ("$.quality.invokedTools" or "$.quality.contextIsolation") &&
+            else if (propertyValue is null && propertyPath is not ("$.quality.invokedTools" or "$.quality.contextIsolation" or
+                         "$.efficiency.jevJudgeCalls" or "$.efficiency.gptJudgeInputTokens" or
+                         "$.efficiency.gptJudgeOutputTokens" or "$.efficiency.gptJudgeTotalTokens") &&
                      property.PropertyType != typeof(string))
             {
                 errors.Add($"{propertyPath} is required.");

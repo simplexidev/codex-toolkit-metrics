@@ -16,3 +16,5 @@ later optimization phases can reuse or compare them without publishing trial con
 Do not include prompts, responses, transcripts, private source, local paths, user data,
 secrets, or raw logs. Preserve historical aggregate files rather than silently rewriting
 published history; corrections should be explicit in a later phase's provenance policy.
+Judge calibration may publish only the aggregate produced by `calibrate-judges
+--public-output`; its example-level report always remains in private storage.

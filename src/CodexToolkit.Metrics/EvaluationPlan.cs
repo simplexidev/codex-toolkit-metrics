@@ -5,7 +5,7 @@ namespace CodexToolkit.Metrics;
 
 public sealed record EvaluationPlan
 {
-    public const string CurrentSchemaVersion = "1.1";
+    public const string CurrentSchemaVersion = "1.2";
 
     public required string SchemaVersion { get; init; }
     public required string Suite { get; init; }
@@ -33,6 +33,18 @@ public sealed record JudgeConfiguration
     public required JudgingPath Path { get; init; }
     public string? Provider { get; init; }
     public string? Model { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public JevJudgeConfiguration? Jev { get; init; }
+}
+
+public sealed record JevJudgeConfiguration
+{
+    public string ApiUrl { get; init; } = "https://api.typesafe.ai/v1/systemone";
+    public string Model { get; init; } = "jev-latest";
+    public int TimeoutSeconds { get; init; } = 15;
+    public int MaxInputBytes { get; init; } = 16_384;
+    public decimal MinConfidence { get; init; } = 0.8m;
+    public decimal PassScore { get; init; } = 0.6m;
 }
 
 public sealed record RunProvenance
@@ -146,9 +158,9 @@ public static class EvaluationPlanLoader
     public static IReadOnlyList<string> Validate(EvaluationPlan plan)
     {
         var errors = new List<string>();
-        if (plan.SchemaVersion is not ("1.0" or EvaluationPlan.CurrentSchemaVersion))
+        if (plan.SchemaVersion is not ("1.0" or "1.1" or EvaluationPlan.CurrentSchemaVersion))
         {
-            errors.Add($"schemaVersion must equal '1.0' or '{EvaluationPlan.CurrentSchemaVersion}'.");
+            errors.Add($"schemaVersion must equal '1.0', '1.1', or '{EvaluationPlan.CurrentSchemaVersion}'.");
         }
 
         Require(plan.Suite, "suite", errors);
@@ -168,9 +180,14 @@ public static class EvaluationPlanLoader
         {
             ValidateOpenAiProvider(plan.Judge.Provider, plan.Judge.Model, "judge", errors);
         }
+        else if (plan.Judge.Path == JudgingPath.Jev)
+        {
+            ValidateOpenAiProvider(plan.Judge.Provider, plan.Judge.Model, "judge fallback", errors);
+            ValidateJev(plan.Judge.Jev, errors);
+        }
         else if (plan.Judge.Provider is not null || plan.Judge.Model is not null)
         {
-            errors.Add("judge provider/model are only valid for the gpt judging path.");
+            errors.Add("judge provider/model are only valid for gpt or jev judging paths.");
         }
 
         if (plan.Arms is null || plan.Arms.Count == 0) errors.Add("arms must contain at least one arm.");
@@ -249,6 +266,23 @@ public static class EvaluationPlanLoader
         {
             errors.Add($"{path}.model must be an OpenAI/GPT model, not Claude.");
         }
+    }
+
+    private static void ValidateJev(JevJudgeConfiguration? jev, List<string> errors)
+    {
+        if (jev is null)
+        {
+            errors.Add("judge.jev is required for the jev judging path.");
+            return;
+        }
+        if (!Uri.TryCreate(jev.ApiUrl, UriKind.Absolute, out var endpoint) || endpoint.Scheme != Uri.UriSchemeHttps ||
+            endpoint.UserInfo.Length != 0 || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0)
+            errors.Add("judge.jev.apiUrl must use HTTPS without credentials, query, or fragment.");
+        Require(jev.Model, "judge.jev.model", errors);
+        if (jev.TimeoutSeconds is < 1 or > 120) errors.Add("judge.jev.timeoutSeconds must be between 1 and 120.");
+        if (jev.MaxInputBytes is < 256 or > 65_536) errors.Add("judge.jev.maxInputBytes must be between 256 and 65536.");
+        if (jev.MinConfidence is < 0 or > 1) errors.Add("judge.jev.minConfidence must be in [0,1].");
+        if (jev.PassScore is < 0 or > 1) errors.Add("judge.jev.passScore must be in [0,1].");
     }
 
     private static void ValidateUnique(IEnumerable<string>? values, string name, List<string> errors)

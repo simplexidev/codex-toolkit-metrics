@@ -28,9 +28,10 @@ jobs:
       - run: dotnet build CodexToolkit.Metrics.slnx --no-restore
       - run: dotnet test CodexToolkit.Metrics.slnx --no-build --logger trx --results-directory TestResults
       - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
+      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-calibration scenarios/judge-calibration-v1.json
       - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-public data/public/example-summary.json
       - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- dashboard-check dashboard
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _site
+      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _pages-ci
       - run: dotnet format CodexToolkit.Metrics.slnx --no-restore --verify-no-changes
       - run: git diff --check
       - uses: actions/upload-artifact@v4

@@ -35,10 +35,10 @@ public static class EvaluationRecordFactory
                     Method = plan.Judge.Path switch
                     {
                         JudgingPath.Deterministic => JudgeMethod.Deterministic,
-                        JudgingPath.Jev => JudgeMethod.Deterministic,
+                        JudgingPath.Jev => JudgeMethod.Hybrid,
                         _ => JudgeMethod.Gpt
                     },
-                    Model = plan.Judge.Path == JudgingPath.Gpt ? plan.Judge.Model : null
+                    Model = plan.Judge.Path == JudgingPath.Deterministic ? null : plan.Judge.Model
                 },
                 Toolkit = plan.Provenance.Toolkit,
                 Metrics = plan.Provenance.Metrics,
@@ -77,9 +77,13 @@ public static class EvaluationRecordFactory
                 TargetedBuilds = Unavailable("count", "build classification unavailable"),
                 FullTests = Unavailable("count", "test classification unavailable"),
                 TargetedTests = Unavailable("count", "test classification unavailable"),
-                ElapsedTime = Metric((decimal)trial.Execution.Elapsed.TotalSeconds, "seconds", MeasurementKind.Measured, "monotonic process timer")
+                ElapsedTime = Metric((decimal)trial.Execution.Elapsed.TotalSeconds, "seconds", MeasurementKind.Measured, "monotonic process timer"),
+                JevJudgeCalls = Metric(trial.Judgment.JevUsage.RemoteCalls, "calls", MeasurementKind.Measured, "JEV judge instrumentation"),
+                GptJudgeInputTokens = Optional(trial.Judgment.Usage.InputTokens, "tokens", "GPT judge Codex JSONL usage"),
+                GptJudgeOutputTokens = Optional(trial.Judgment.Usage.OutputTokens, "tokens", "GPT judge Codex JSONL usage"),
+                GptJudgeTotalTokens = Optional(trial.Judgment.Usage.TotalTokens, "tokens", "GPT judge Codex JSONL usage")
             },
-            Jev = EmptyJev(),
+            Jev = JevMetrics(trial.Judgment),
             StaticCost = StaticCost(arm, planDirectory),
             Statistics = new StatisticsMetrics
             {
@@ -168,18 +172,18 @@ public static class EvaluationRecordFactory
         ? GateOutcome.NotApplicable
         : observed is null || observed != expected ? GateOutcome.Fail : GateOutcome.Pass;
 
-    private static JevIntelligenceMetrics EmptyJev() => new()
+    private static JevIntelligenceMetrics JevMetrics(JudgeResult judgment) => new()
     {
-        DeterministicResolutions = Unavailable("count", "full JEV judging deferred"),
-        PurposeResolutions = Unavailable("count", "full JEV judging deferred"),
-        InputResolutions = Unavailable("count", "full JEV judging deferred"),
-        CostResolutions = Unavailable("count", "full JEV judging deferred"),
-        ConfidenceResolutions = Unavailable("count", "full JEV judging deferred"),
-        OutcomeResolutions = Unavailable("count", "full JEV judging deferred"),
-        Fallbacks = Unavailable("count", "full JEV judging deferred"),
-        Escalations = Unavailable("count", "full JEV judging deferred"),
-        FalseExclusions = Unavailable("count", "full JEV judging deferred"),
-        ContextAvoided = Unavailable("tokens", "full JEV judging deferred")
+        DeterministicResolutions = Metric(judgment.Path == JudgingPath.Deterministic ? 1 : 0, "count", MeasurementKind.Derived, "judge resolution path"),
+        PurposeResolutions = Metric(0, "count", MeasurementKind.Derived, "evaluation rubric does not classify purpose"),
+        InputResolutions = Metric(0, "count", MeasurementKind.Derived, "evaluation rubric does not classify input selection"),
+        CostResolutions = Metric(judgment.JevUsage.RemoteCalls, "calls", MeasurementKind.Measured, "JEV remote-call cost unit"),
+        ConfidenceResolutions = Metric(judgment.Path == JudgingPath.Jev ? 1 : 0, "count", MeasurementKind.Derived, "accepted JEV confidence threshold"),
+        OutcomeResolutions = Metric(judgment.Path == JudgingPath.Jev ? 1 : 0, "count", MeasurementKind.Derived, "bounded JEV rubric outcome"),
+        Fallbacks = Metric(judgment.JevUsage.Fallbacks, "count", MeasurementKind.Measured, "JEV client instrumentation"),
+        Escalations = Metric(judgment.Escalated ? 1 : 0, "count", MeasurementKind.Measured, "JEV-to-GPT escalation"),
+        FalseExclusions = Unavailable("count", "requires calibration ground truth"),
+        ContextAvoided = Unavailable("tokens", "equivalent GPT context was not measured")
     };
 
     private static StaticCostMetrics StaticCost(EvaluationArmDefinition arm, string planDirectory)

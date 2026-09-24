@@ -4,7 +4,7 @@ namespace CodexToolkit.Metrics;
 
 public sealed record EvaluationRecord
 {
-    public const string CurrentSchemaVersion = "1.1.0";
+    public const string CurrentSchemaVersion = "1.2.0";
 
     public required string SchemaVersion { get; init; }
 
@@ -160,6 +160,14 @@ public sealed record EfficiencyMetrics
     public required NumericMetric TargetedTests { get; init; }
 
     public required NumericMetric ElapsedTime { get; init; }
+
+    public NumericMetric? JevJudgeCalls { get; init; }
+
+    public NumericMetric? GptJudgeInputTokens { get; init; }
+
+    public NumericMetric? GptJudgeOutputTokens { get; init; }
+
+    public NumericMetric? GptJudgeTotalTokens { get; init; }
 }
 
 public sealed record JevIntelligenceMetrics

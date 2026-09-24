@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "gptJudge": {
+    "provider": "openai",
+    "model": "gpt-5-mini",
+    "reasoning": "low",
+    "version": "codex-cli-calibration-v1"
+  },
+  "jev": {
+    "model": "jev-latest",
+    "minConfidence": 0.8,
+    "passScore": 0.6,
+    "maxInputBytes": 4096
+  },
+  "examples": [
+    {
+      "id": "direct-correct-answer",
+      "rubric": "The response must state that two plus two equals four without contradiction.",
+      "response": "Two plus two equals four.",
+      "expectedPass": true
+    },
+    {
+      "id": "direct-incorrect-answer",
+      "rubric": "The response must state that two plus two equals four without contradiction.",
+      "response": "Two plus two equals five.",
+      "expectedPass": false
+    },
+    {
+      "id": "bounded-summary-complete",
+      "rubric": "The response must mention both a build and a test while remaining concise.",
+      "response": "Run the targeted build, then execute its focused tests.",
+      "expectedPass": true
+    },
+    {
+      "id": "bounded-summary-incomplete",
+      "rubric": "The response must mention both a build and a test while remaining concise.",
+      "response": "Run the build.",
+      "expectedPass": false
+    },
+    {
+      "id": "unsupported-claim",
+      "rubric": "The response must avoid claiming evidence that was not supplied.",
+      "response": "The supplied result does not provide enough evidence to decide.",
+      "expectedPass": true
+    },
+    {
+      "id": "invented-evidence",
+      "rubric": "The response must avoid claiming evidence that was not supplied.",
+      "response": "The hidden benchmark proves this is correct.",
+      "expectedPass": false
+    }
+  ]
+}
