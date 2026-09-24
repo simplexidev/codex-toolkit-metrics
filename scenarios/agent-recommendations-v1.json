@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0",
+  "recommendations": [
+    {
+      "role": "reviewer",
+      "disposition": "KEEP",
+      "scenario": "reviewer-vs-security-reviewer",
+      "arms": ["generic", "current-reviewer"],
+      "rationale": "Current reviewer matched generic quality on the bounded security diff; retain its explicit high-risk isolation boundary."
+    },
+    {
+      "role": "security-reviewer",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "reviewer-vs-security-reviewer",
+      "arms": ["generic", "current-reviewer", "security-candidate"],
+      "rationale": "All arms earned full semantic quality; one fixture shows no measurable gain over the current reviewer or generic baseline."
+    },
+    {
+      "role": "code-mapper",
+      "disposition": "REPLACE_WITH_BUILTIN",
+      "scenario": "code-mapper-vs-built-in-explorer",
+      "arms": ["generic", "historical-mapper"],
+      "rationale": "The generic subagent scored 1.00 while the historical mapper scored 0.75; keep the retired role replaced by native delegation."
+    },
+    {
+      "role": "log-analyzer",
+      "disposition": "RETIRE",
+      "scenario": "log-analyzer-vs-runtime-diagnostician",
+      "arms": ["generic", "historical-log-analyzer", "runtime-candidate"],
+      "rationale": "All three arms scored 1.00, so the broad historical role adds no measured quality benefit over generic bounded diagnosis."
+    },
+    {
+      "role": "runtime-diagnostician",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "log-analyzer-vs-runtime-diagnostician",
+      "arms": ["generic", "historical-log-analyzer", "runtime-candidate"],
+      "rationale": "The candidate tied both baselines at 1.00; its single-fixture time advantage does not justify a persistent custom role."
+    },
+    {
+      "role": "build-diagnostician",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "build-diagnostician",
+      "arms": ["builtin", "generic", "build-candidate"],
+      "rationale": "Candidate and generic arms scored 1.00, while generic used fewer tokens and less time; no specialist benefit was measured."
+    },
+    {
+      "role": "test-specialist",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "test-specialist",
+      "arms": ["builtin", "generic", "test-candidate"],
+      "rationale": "All arms scored 1.00 on bounded test assessment; a persistent role did not improve quality over focused native reasoning."
+    },
+    {
+      "role": "upstream-reviewer",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "upstream-reviewer",
+      "arms": ["builtin", "generic", "upstream-candidate"],
+      "rationale": "Built-in scored 1.00 and the candidate 0.95; the bounded evidence does not support adding an upstream specialist."
+    },
+    {
+      "role": "release-auditor",
+      "disposition": "INSUFFICIENT_EVIDENCE",
+      "scenario": "release-auditor",
+      "arms": ["builtin", "generic", "release-candidate"],
+      "rationale": "All arms scored 1.00 and the candidate showed no cost advantage, so independent specialization remains unproven."
+    }
+  ],
+  "routing": [
+    {
+      "capability": "repo-navigation-impact",
+      "route": "DETERMINISTIC",
+      "scenario": "ambiguous-capability-routing",
+      "arms": ["routing-native", "routing-policy"],
+      "rationale": "Both routing arms selected deterministic tooling for exact tracked-path and project-dependency facts."
+    },
+    {
+      "capability": "github-issues",
+      "route": "JEV",
+      "scenario": "ambiguous-capability-routing",
+      "arms": ["routing-native", "routing-policy"],
+      "rationale": "Both arms selected bounded JEV only after exact filtering left ambiguous sanitized issue descriptions."
+    },
+    {
+      "capability": "tests",
+      "route": "AGENT",
+      "scenario": "ambiguous-capability-routing",
+      "arms": ["routing-native", "routing-policy"],
+      "rationale": "Both arms selected normal agent reasoning for a small behavior-bearing test edit after framework facts were known."
+    },
+    {
+      "capability": "security-sarif",
+      "route": "CUSTOM_AGENT",
+      "scenario": "ambiguous-capability-routing",
+      "arms": ["routing-native", "routing-policy"],
+      "rationale": "Both arms reserved custom isolation for an independent security review crossing a shell-command trust boundary."
+    }
+  ]
+}

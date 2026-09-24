@@ -55,10 +55,14 @@
         "required": ["id", "comparison", "customization"],
         "properties": {
           "id": { "$ref": "#/$defs/name" },
+          "role": { "$ref": "#/$defs/name" },
           "comparison": { "enum": ["VANILLA", "UPSTREAM", "OPTIMIZED"] },
           "customization": { "enum": ["BUILTIN-or-NO-CUSTOM", "PREVIOUS-CUSTOM", "OPTIMIZED-or-NEW"] },
           "skillPaths": { "$ref": "#/$defs/paths" },
-          "agentPaths": { "$ref": "#/$defs/paths" }
+          "agentPaths": { "$ref": "#/$defs/paths" },
+          "instructionFile": { "$ref": "#/$defs/name" },
+          "sandbox": { "enum": ["read-only", "workspace-write"] },
+          "contextIsolated": { "type": "boolean" }
         }
       }
     },
@@ -74,6 +78,7 @@
           "capability": { "$ref": "#/$defs/name" },
           "prompt": { "$ref": "#/$defs/name" },
           "promptFile": { "$ref": "#/$defs/name" },
+          "armIds": { "$ref": "#/$defs/paths" },
           "expected": {
             "type": "object",
             "additionalProperties": false,
@@ -100,7 +105,8 @@
               "activationCase": { "$ref": "#/$defs/routingCase" },
               "delegationCase": { "$ref": "#/$defs/routingCase" },
               "nestedDelegation": { "type": "boolean" },
-              "contextIsolation": { "type": "boolean" }
+              "contextIsolation": { "type": "boolean" },
+              "semanticRubric": { "$ref": "#/$defs/name" }
             }
           }
         },

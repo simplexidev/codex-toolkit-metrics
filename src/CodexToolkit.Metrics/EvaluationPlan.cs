@@ -45,10 +45,14 @@ public sealed record RunProvenance
 public sealed record EvaluationArmDefinition
 {
     public required string Id { get; init; }
+    public string? Role { get; init; }
     public required ComparisonArm Comparison { get; init; }
     public required CustomizationArm Customization { get; init; }
     public IReadOnlyList<string> SkillPaths { get; init; } = [];
     public IReadOnlyList<string> AgentPaths { get; init; } = [];
+    public string? InstructionFile { get; init; }
+    public string Sandbox { get; init; } = "read-only";
+    public bool ContextIsolated { get; init; } = true;
 }
 
 public sealed record EvaluationScenario
@@ -57,6 +61,7 @@ public sealed record EvaluationScenario
     public required string Capability { get; init; }
     public string? Prompt { get; init; }
     public string? PromptFile { get; init; }
+    public IReadOnlyList<string> ArmIds { get; init; } = [];
     public required ScenarioExpectations Expected { get; init; }
 }
 
@@ -74,6 +79,7 @@ public sealed record ScenarioExpectations
     public RoutingCase DelegationCase { get; init; } = RoutingCase.Unspecified;
     public bool? NestedDelegation { get; init; }
     public bool? ContextIsolation { get; init; }
+    public string? SemanticRubric { get; init; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<RoutingCase>))]
@@ -187,10 +193,14 @@ public static class EvaluationPlanLoader
 
         foreach (var arm in plan.Arms ?? [])
         {
+            if (arm.Role is not null) Require(arm.Role, $"arm '{arm.Id}' role", errors);
             foreach (var path in arm.SkillPaths.Concat(arm.AgentPaths))
             {
                 Require(path, $"arm '{arm.Id}' overlay path", errors);
             }
+            if (arm.InstructionFile is not null) Require(arm.InstructionFile, $"arm '{arm.Id}' instructionFile", errors);
+            if (arm.Sandbox is not ("read-only" or "workspace-write"))
+                errors.Add($"arm '{arm.Id}' sandbox must equal 'read-only' or 'workspace-write'.");
         }
 
         foreach (var scenario in plan.Scenarios ?? [])
@@ -207,6 +217,11 @@ public static class EvaluationPlanLoader
                     $"scenario '{scenario.Id}' activation", errors);
                 ValidateRoutingCase(scenario.Expected.DelegationCase, scenario.Expected.DelegatedAgents,
                     $"scenario '{scenario.Id}' delegation", errors);
+            }
+            foreach (var armId in scenario.ArmIds)
+            {
+                if (!(plan.Arms ?? []).Any(arm => string.Equals(arm.Id, armId, StringComparison.Ordinal)))
+                    errors.Add($"scenario '{scenario.Id}' references unknown arm '{armId}'.");
             }
         }
 

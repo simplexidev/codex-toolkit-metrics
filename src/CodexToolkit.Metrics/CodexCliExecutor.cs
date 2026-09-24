@@ -9,6 +9,8 @@ public sealed class CodexCliExecutor : IEvaluationExecutor
         CancellationToken cancellationToken)
     {
         var start = Stopwatch.GetTimestamp();
+        using var codexHome = EphemeralCodexHome.Create(
+            Path.Combine(Environment.CurrentDirectory, "data", "private", ".executor-homes"));
         var info = new ProcessStartInfo
         {
             FileName = request.Provider.Executable,
@@ -20,6 +22,7 @@ public sealed class CodexCliExecutor : IEvaluationExecutor
             CreateNoWindow = true
         };
         info.Environment.Remove("TYPESAFE_API_KEY");
+        info.Environment["CODEX_HOME"] = codexHome.Path;
         foreach (var argument in new[]
         {
             "exec", "--json", "--ephemeral", "--ignore-user-config", "--skip-git-repo-check",
@@ -64,6 +67,10 @@ public sealed class CodexCliExecutor : IEvaluationExecutor
         var stderr = await stderrTask;
         cancellationToken.ThrowIfCancellationRequested();
         var parsed = CodexJsonlParser.Parse(stdout);
+        var observations = parsed.Observations with
+        {
+            ContextIsolated = parsed.Observations.ContextIsolated ?? request.ContextIsolated
+        };
         return new ExecutionResult
         {
             ExitCode = timedOut ? null : process.ExitCode,
@@ -73,7 +80,7 @@ public sealed class CodexCliExecutor : IEvaluationExecutor
             StandardError = stderr,
             Elapsed = Stopwatch.GetElapsedTime(start),
             Usage = parsed.Usage,
-            Observations = parsed.Observations,
+            Observations = observations,
             Failure = timedOut ? $"Timed out after {request.Timeout.TotalSeconds:0} seconds." :
                 process.ExitCode == 0 ? null : "Codex CLI returned a non-zero exit code."
         };
@@ -89,4 +96,50 @@ public sealed class CodexCliExecutor : IEvaluationExecutor
         Elapsed = Stopwatch.GetElapsedTime(start),
         Failure = message
     };
+
+    private sealed class EphemeralCodexHome : IDisposable
+    {
+        private EphemeralCodexHome(string path) => Path = path;
+
+        public string Path { get; }
+
+        public static EphemeralCodexHome Create(string root)
+        {
+            Directory.CreateDirectory(root);
+            var path = System.IO.Path.Combine(root, $"codex-metrics-home-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(path);
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            try
+            {
+                var configured = Environment.GetEnvironmentVariable("CODEX_HOME");
+                var source = !string.IsNullOrWhiteSpace(configured)
+                    ? configured
+                    : System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".codex");
+                CopyPrivateFile(source, path, "auth.json");
+                CopyPrivateFile(source, path, "models_cache.json");
+                return new EphemeralCodexHome(path);
+            }
+            catch
+            {
+                Directory.Delete(path, recursive: true);
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path)) Directory.Delete(Path, recursive: true);
+        }
+
+        private static void CopyPrivateFile(string sourceDirectory, string destinationDirectory, string name)
+        {
+            var source = System.IO.Path.Combine(sourceDirectory, name);
+            if (!File.Exists(source)) return;
+            var destination = System.IO.Path.Combine(destinationDirectory, name);
+            File.Copy(source, destination, overwrite: false);
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(destination, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+    }
 }
