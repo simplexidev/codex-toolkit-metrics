@@ -19,7 +19,7 @@
   "arms": [
     { "id": "builtin", "role": "root-coordinator", "comparison": "VANILLA", "customization": "BUILTIN-or-NO-CUSTOM", "sandbox": "read-only", "contextIsolated": true },
     { "id": "generic", "role": "generic-subagent", "comparison": "VANILLA", "customization": "BUILTIN-or-NO-CUSTOM", "instructionFile": "config/agents/generic.md", "sandbox": "read-only", "contextIsolated": true },
-    { "id": "current-reviewer", "role": "reviewer", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "../../codex-toolkit/agents/reviewer.toml", "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"], "sandbox": "read-only", "contextIsolated": true },
+    { "id": "current-reviewer", "role": "reviewer", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "../../sdeveng/agents/reviewer.toml", "agentPaths": ["../../sdeveng/agents/reviewer.toml"], "sandbox": "read-only", "contextIsolated": true },
     { "id": "historical-mapper", "role": "code-mapper", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "config/agents/code-mapper.md", "sandbox": "read-only", "contextIsolated": true },
     { "id": "historical-log-analyzer", "role": "log-analyzer", "comparison": "VANILLA", "customization": "PREVIOUS-CUSTOM", "instructionFile": "config/agents/log-analyzer.md", "sandbox": "read-only", "contextIsolated": true },
     { "id": "security-candidate", "role": "security-reviewer", "comparison": "OPTIMIZED", "customization": "OPTIMIZED-or-NEW", "instructionFile": "config/agents/security-reviewer.md", "sandbox": "read-only", "contextIsolated": true },

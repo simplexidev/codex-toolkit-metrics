@@ -34,6 +34,6 @@ results/private/
 appsettings.Local.json
 secrets.json
 
-# Generated dashboard staging output (source lives in dashboard/)
+# Generated dashboard staging output
 site/
 _site/

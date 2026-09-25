@@ -26,7 +26,7 @@
       "id": "agents-current-custom",
       "comparison": "VANILLA",
       "customization": "PREVIOUS-CUSTOM",
-      "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"]
+      "agentPaths": ["../../sdeveng/agents/reviewer.toml"]
     }
   ],
   "scenarios": [

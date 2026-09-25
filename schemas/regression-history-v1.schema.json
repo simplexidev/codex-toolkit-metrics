@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/regression-history-v1.schema.json",
+  "$id": "https://raw.githubusercontent.com/simplexidev/sdeveng-metrics-tooling/develop/v3.0.0/schemas/regression-history-v1.schema.json",
   "title": "SimplexiDev Engineering Toolkit sanitized regression history",
   "type": "object",
   "additionalProperties": false,
