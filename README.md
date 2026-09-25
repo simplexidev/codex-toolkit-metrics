@@ -1,7 +1,8 @@
 # Codex Toolkit Metrics
 
 Evaluation, measurement, calibration, sanitized metrics history, and dashboard source for
-[`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit).
+[`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit) on the
+`develop/v3.0.0` product line.
 
 This repository treats Codex Toolkit as the subject under test. It may run the toolkit and
 consume its stable structured outputs, but it is not a plugin and is not a runtime
