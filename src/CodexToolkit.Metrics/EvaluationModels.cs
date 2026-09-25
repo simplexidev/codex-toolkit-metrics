@@ -52,6 +52,7 @@ public sealed record EvaluationIdentity
 
 public sealed record ExecutorIdentity
 {
+    public required string Provider { get; init; }
     public required string Model { get; init; }
 
     public required string Reasoning { get; init; }

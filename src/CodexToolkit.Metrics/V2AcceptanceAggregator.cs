@@ -6,18 +6,30 @@ public static class V2AcceptanceAggregator
 {
     public static async Task<string> AggregateAsync(
         string rawDirectory,
+        string planPath,
         string baselinePath,
+        string capabilityManifestPath,
         string toolkitRevision,
         DateTimeOffset generatedAt,
         CancellationToken cancellationToken = default)
     {
         ValidateRevision(toolkitRevision);
+        var loaded = await EvaluationPlanLoader.LoadAsync(planPath, cancellationToken);
+        if (loaded.Plan is null || loaded.Errors.Count != 0) throw new InvalidOperationException("Acceptance plan is invalid: " + string.Join("; ", loaded.Errors));
+        var plan = loaded.Plan;
+        if (plan.Baseline is null) throw new InvalidOperationException("Acceptance plan must bind a reviewed baseline identity.");
+        if (!string.Equals(plan.Provenance.Toolkit.Sha, toolkitRevision, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Acceptance plan and requested toolkit revision do not match.");
+        var capabilityIds = await LoadCapabilityIdsAsync(capabilityManifestPath, cancellationToken);
+        var unknown = plan.Scenarios.Select(s => s.Capability).Where(id => !capabilityIds.Contains(id)).Distinct().ToArray();
+        if (unknown.Length != 0) throw new InvalidOperationException("Acceptance plan contains unknown product capability IDs: " + string.Join(", ", unknown));
         var records = await LoadRecordsAsync(rawDirectory, toolkitRevision, cancellationToken);
+        await ValidateExactMatrixAsync(plan, records, planPath, cancellationToken);
         if (records.Any(record => record.Arm.Comparison != ComparisonArm.Optimized ||
                                   record.Arm.Customization != CustomizationArm.OptimizedOrNew))
             throw new InvalidOperationException("V2 acceptance records must use the OPTIMIZED / OPTIMIZED-or-NEW arm.");
 
         using var baseline = JsonDocument.Parse(await File.ReadAllTextAsync(baselinePath, cancellationToken));
+        ValidateBaseline(baseline.RootElement, plan.Baseline);
         var baselineMetrics = baseline.RootElement.GetProperty("metrics").EnumerateArray()
             .ToDictionary(item => item.GetProperty("name").GetString()!, item => item.GetProperty("value").GetDecimal(), StringComparer.Ordinal);
         var baselineScenarios = baseline.RootElement.GetProperty("scenarios");
@@ -33,8 +45,8 @@ public static class V2AcceptanceAggregator
             Metric("scenario-pass-rate", Ratio(passed, scenarios.Length), "ratio", "higher-is-better", "measured", "optimized v2 scenarios passing the final quality gate"),
             Metric("regression-count", Math.Max(0, failures - baselineFailures), "count", "lower-is-better", "derived", "optimized failures above the reviewed pre-v2 baseline failure count"),
             Metric("model-policy-compliance", records.All(IsOpenAiRecord) ? 1 : 0, "ratio", "higher-is-better", "derived", "validated OpenAI executor identities and deterministic judge path"),
-            Metric("acceptance-scenario-coverage", 1, "ratio", "higher-is-better", "derived", "completed optimized records divided by the bounded acceptance plan"),
-            Metric("capability-coverage", Ratio(scenarios.Length, 31), "ratio", "higher-is-better", "derived", "bounded optimized scenarios divided by 31 declared v2 capability groups"),
+            Metric("acceptance-scenario-coverage", Ratio(scenarios.Length, plan.Scenarios.Count), "ratio", "higher-is-better", "derived", "verified completed scenario matrix divided by the bounded acceptance plan"),
+            Metric("capability-coverage", Ratio(plan.Scenarios.Select(s => s.Capability).Distinct(StringComparer.Ordinal).Count(), capabilityIds.Count), "ratio", "higher-is-better", "derived", "distinct validated product capability IDs divided by the subject capability manifest"),
             Metric("pre-v2-scenario-pass-rate", Baseline(baselineMetrics, "scenario-pass-rate"), "ratio", "higher-is-better", "measured", "reviewed pre-v2 baseline"),
             Metric("vanilla-skill-pass-rate", Baseline(baselineMetrics, "dotnet-vanilla-pass-rate"), "ratio", "higher-is-better", "measured", "reviewed VANILLA baseline"),
             Metric("upstream-skill-pass-rate", Baseline(baselineMetrics, "dotnet-upstream-pass-rate"), "ratio", "higher-is-better", "measured", "reviewed UPSTREAM baseline"),
@@ -92,8 +104,32 @@ public static class V2AcceptanceAggregator
     }
 
     private static bool IsOpenAiRecord(EvaluationRecord record) =>
-        record.Identity.Executor.Model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(record.Identity.Executor.Provider, "openai", StringComparison.OrdinalIgnoreCase) && record.Identity.Executor.Model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase) &&
         record.Identity.Judge.Method == JudgeMethod.Deterministic;
+
+    private static async Task<HashSet<string>> LoadCapabilityIdsAsync(string path, CancellationToken cancellationToken)
+    {
+        using var document = JsonDocument.Parse(await File.ReadAllTextAsync(path, cancellationToken));
+        if (!document.RootElement.TryGetProperty("capabilities", out var capabilities) || capabilities.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("Capability manifest must contain a capabilities array.");
+        var ids = capabilities.EnumerateArray().Select(item => item.GetProperty("id").GetString()).Where(id => !string.IsNullOrWhiteSpace(id)).ToHashSet(StringComparer.Ordinal);
+        if (ids.Count == 0) throw new InvalidOperationException("Capability manifest contains no capability IDs.");
+        return ids!;
+    }
+
+    private static async Task ValidateExactMatrixAsync(EvaluationPlan plan, IReadOnlyList<EvaluationRecord> records, string planPath, CancellationToken cancellationToken)
+    {
+        var directory = Path.GetDirectoryName(Path.GetFullPath(planPath))!;
+        var expected = new Dictionary<(string Scenario, string Arm, int Repetition), string>();
+        foreach (var scenario in plan.Scenarios) foreach (var arm in scenario.ArmIds.Count == 0 ? plan.Arms : plan.Arms.Where(arm => scenario.ArmIds.Contains(arm.Id, StringComparer.Ordinal))) for (var repetition = 1; repetition <= plan.Repetitions; repetition++) expected[(scenario.Id, arm.Id, repetition)] = await CompatibilityHasher.ComputeAsync(plan, scenario, arm, directory, cancellationToken);
+        var actual = records.GroupBy(record => (record.Identity.Scenario, record.Identity.Arm, record.Identity.Repetition)).ToArray();
+        if (actual.Any(group => group.Count() != 1) || actual.Length != expected.Count || actual.Any(group => !expected.ContainsKey(group.Key))) throw new InvalidOperationException("Acceptance records must contain exactly one record for every planned scenario, arm, and repetition, with no duplicates or unexpected tuples.");
+        foreach (var group in actual) if (!string.Equals(group.Single().Statistics.BaselineCompatibility.Hash, expected[group.Key], StringComparison.Ordinal)) throw new InvalidOperationException($"Acceptance record compatibility hash does not match the reviewed plan for {group.Key}.");
+    }
+
+    private static void ValidateBaseline(JsonElement root, AcceptanceBaseline expected)
+    {
+        if (root.GetProperty("schemaVersion").GetString() != "1.0" || root.GetProperty("subject").GetProperty("repository").GetString() != "simplexidev/codex-toolkit" || !string.Equals(root.GetProperty("subject").GetProperty("revision").GetString(), expected.Subject.Sha, StringComparison.OrdinalIgnoreCase) || root.GetProperty("provenance").GetProperty("approval").GetString() != expected.Approval) throw new InvalidOperationException("Baseline does not match the acceptance plan's reviewed schema, subject revision, and approval lineage.");
+    }
 
     private static decimal Baseline(IReadOnlyDictionary<string, decimal> metrics, string name) =>
         metrics.TryGetValue(name, out var value) ? value : throw new InvalidOperationException($"Required baseline metric is missing: {name}.");

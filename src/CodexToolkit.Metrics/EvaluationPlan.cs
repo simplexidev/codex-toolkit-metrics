@@ -15,6 +15,7 @@ public sealed record EvaluationPlan
     public required RunnerProvider Executor { get; init; }
     public required JudgeConfiguration Judge { get; init; }
     public required RunProvenance Provenance { get; init; }
+    public AcceptanceBaseline? Baseline { get; init; }
     public required IReadOnlyList<EvaluationArmDefinition> Arms { get; init; }
     public required IReadOnlyList<EvaluationScenario> Scenarios { get; init; }
 }
@@ -52,6 +53,12 @@ public sealed record RunProvenance
     public required RevisionIdentity Toolkit { get; init; }
     public required RevisionIdentity Metrics { get; init; }
     public UpstreamIdentity Upstream { get; init; } = new();
+}
+
+public sealed record AcceptanceBaseline
+{
+    public required RevisionIdentity Subject { get; init; }
+    public string Approval { get; init; } = "reviewed";
 }
 
 public sealed record EvaluationArmDefinition

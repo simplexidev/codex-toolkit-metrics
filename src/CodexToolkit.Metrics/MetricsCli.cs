@@ -40,7 +40,7 @@ public static class MetricsCli
             return await AggregateAgentCapabilityAsync(args, output, error, cancellationToken);
         }
 
-        if (args.Length >= 5 && args[0] == "aggregate-v2-acceptance")
+        if (args.Length >= 7 && args[0] == "aggregate-v2-acceptance")
         {
             return await AggregateV2AcceptanceAsync(args, output, error, cancellationToken);
         }
@@ -177,7 +177,7 @@ public static class MetricsCli
         await output.WriteLineAsync("  validate-calibration <examples.json>");
         await output.WriteLineAsync("  aggregate-baseline <raw-directory> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  aggregate-agent-capability <raw-directory> <recommendations.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
-        await output.WriteLineAsync("  aggregate-v2-acceptance <raw-directory> <baseline.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
+        await output.WriteLineAsync("  aggregate-v2-acceptance <raw-directory> <plan.json> <baseline.json> <capabilities.json> <output.json> <toolkit-revision> [--generated-at <timestamp>]");
         await output.WriteLineAsync("  validate-plan <plan.json>");
         await output.WriteLineAsync("  select-affected <plan.json> <changed-paths.json>");
         await output.WriteLineAsync("  validate-history <history.json>");
@@ -197,7 +197,7 @@ public static class MetricsCli
         CancellationToken cancellationToken)
     {
         var generatedAt = DateTimeOffset.UtcNow;
-        for (var index = 5; index < args.Length; index++)
+        for (var index = 7; index < args.Length; index++)
         {
             if (args[index] == "--generated-at" && index + 1 < args.Length &&
                 DateTimeOffset.TryParse(args[++index], out var parsed)) generatedAt = parsed;
@@ -210,15 +210,15 @@ public static class MetricsCli
 
         try
         {
-            var json = await V2AcceptanceAggregator.AggregateAsync(args[1], args[2], args[4], generatedAt, cancellationToken);
-            await WriteAsync(args[3], json, cancellationToken);
-            var validation = await PublicMetricsValidator.ValidateFileAsync(args[3], cancellationToken);
+            var json = await V2AcceptanceAggregator.AggregateAsync(args[1], args[2], args[3], args[4], args[6], generatedAt, cancellationToken);
+            await WriteAsync(args[5], json, cancellationToken);
+            var validation = await PublicMetricsValidator.ValidateFileAsync(args[5], cancellationToken);
             if (!validation.IsValid)
             {
                 foreach (var validationError in validation.Errors) await error.WriteLineAsync(validationError);
                 return 1;
             }
-            await output.WriteLineAsync($"Sanitized v2 acceptance aggregate written to: {Path.GetFullPath(args[3])}");
+            await output.WriteLineAsync($"Sanitized v2 acceptance aggregate written to: {Path.GetFullPath(args[5])}");
             return 0;
         }
         catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException or JsonException)

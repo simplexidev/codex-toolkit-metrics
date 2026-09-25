@@ -19,6 +19,6 @@ published history; corrections should be explicit in a later phase's provenance 
 Judge calibration may publish only the aggregate produced by `calibrate-judges
 --public-output`; its example-level report always remains in private storage.
 
-`v2-acceptance.json` is generated from validated optimized-arm records and the reviewed
+`v2-acceptance.json` is generated only from validated optimized-arm records and the reviewed
 pre-v2 aggregate. It intentionally publishes evidence-availability rates for measurements
 the executor cannot observe; unavailable evidence is not serialized as a numeric zero.

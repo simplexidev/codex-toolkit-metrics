@@ -70,6 +70,8 @@ public static class EvaluationRecordValidator
         RequireText(identity.Scenario, "$.identity.scenario", errors);
         RequireText(identity.Capability, "$.identity.capability", errors);
         RequireText(identity.Arm, "$.identity.arm", errors);
+        if (!string.Equals(identity.Executor?.Provider, "openai", StringComparison.OrdinalIgnoreCase))
+            errors.Add("$.identity.executor.provider must be 'openai'.");
         RequireText(identity.Executor?.Model, "$.identity.executor.model", errors);
         RequireText(identity.Executor?.Reasoning, "$.identity.executor.reasoning", errors);
         ValidateRevision(identity.Toolkit, "$.identity.toolkit", errors);
