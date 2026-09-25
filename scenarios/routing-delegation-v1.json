@@ -16,8 +16,8 @@
     "comparison": "OPTIMIZED",
     "customization": "OPTIMIZED-or-NEW",
     "skillPaths": [
-      "../../codex-toolkit/plugins/codex-toolkit/skills/benchmark",
-      "../../codex-toolkit/plugins/codex-toolkit/skills/dotnet-verify"
+      "../../codex-toolkit/plugins/sdeveng/skills/benchmark",
+      "../../codex-toolkit/plugins/sdeveng/skills/dotnet-verify"
     ],
     "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"]
   }],

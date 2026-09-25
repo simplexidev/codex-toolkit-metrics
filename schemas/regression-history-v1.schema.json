@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/regression-history-v1.schema.json",
-  "title": "Codex Toolkit sanitized regression history",
+  "title": "SimplexiDev Engineering Toolkit sanitized regression history",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "generatedAt", "subject", "lineage", "acceptedBaseline", "gates", "deltas", "trends", "provenance"],

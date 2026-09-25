@@ -23,10 +23,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - run: dotnet restore CodexToolkit.Metrics.slnx
-      - run: dotnet build CodexToolkit.Metrics.slnx --no-restore
-      - run: dotnet test CodexToolkit.Metrics.slnx --no-build
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _pages
+      - run: dotnet restore SdevEng.Metrics.slnx
+      - run: dotnet build SdevEng.Metrics.slnx --no-restore
+      - run: dotnet test SdevEng.Metrics.slnx --no-build
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- publish-pages dashboard data/public _pages
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
