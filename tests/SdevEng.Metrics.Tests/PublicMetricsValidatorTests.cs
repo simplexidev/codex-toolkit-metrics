@@ -11,6 +11,14 @@ public sealed class PublicMetricsValidatorTests
     }
 
     [Fact]
+    public async Task AcceptsLegacyV2RepositoryProvenance()
+    {
+        var result = await PublicMetricsValidator.ValidateFileAsync(Fixture("public-valid.json"));
+
+        Assert.True(result.IsValid, string.Join(Environment.NewLine, result.Errors));
+    }
+
+    [Fact]
     public async Task RejectsSensitiveRawFields()
     {
         var result = await PublicMetricsValidator.ValidateFileAsync(Fixture("public-sensitive.json"));

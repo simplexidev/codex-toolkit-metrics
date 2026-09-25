@@ -64,7 +64,7 @@ public static class PreOptimizationBaselineAggregator
         var document = new PublicBaselineDocument(
             "1.0",
             generatedAt,
-            new PublicBaselineSubject("simplexidev/codex-toolkit", toolkitRevision.ToLowerInvariant()),
+            new PublicBaselineSubject("simplexidev/sdeveng", toolkitRevision.ToLowerInvariant()),
             new PublicBaselineScenarios(
                 scenarioGroups.Length,
                 scenarioGroups.Count(group => group.All(record => record.Quality.FinalQualityGate == GateOutcome.Pass))),
@@ -124,4 +124,3 @@ public static class PreOptimizationBaselineAggregator
         string Method);
     private sealed record PublicBaselineProvenance(int SourceRuns, bool Sanitized, string Approval);
 }
-

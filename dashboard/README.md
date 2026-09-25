@@ -10,4 +10,5 @@ dotnet run --project src/SdevEng.Metrics -- publish-pages dashboard data/public 
 ```
 
 All browser paths are project-relative for the Pages target at
-<https://simplexidev.github.io/codex-toolkit-metrics/>.
+<https://simplexidev.github.io/sdeveng-metrics-dashboard/>. Until the Pages migration,
+the dashboard remains available at <https://simplexidev.github.io/codex-toolkit-metrics/>.

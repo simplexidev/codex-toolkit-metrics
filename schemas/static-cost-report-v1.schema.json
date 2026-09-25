@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "subject", "revision", "tokenizer", "skills", "agents", "routingOverlap", "summary"],
   "properties": {
     "schemaVersion": { "const": "1.0" },
-    "subject": { "const": "simplexidev/codex-toolkit" },
+    "subject": { "enum": ["simplexidev/sdeveng", "simplexidev/codex-toolkit"] },
     "revision": { "type": "string", "pattern": "^[0-9a-fA-F]{7,64}$" },
     "tokenizer": { "type": "string", "minLength": 1 },
     "skills": { "type": "array", "items": { "$ref": "#/$defs/skill" } },

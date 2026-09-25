@@ -43,7 +43,7 @@ public static class RegressionHistory
     public static void Validate(RegressionHistoryDocument document)
     {
         if (document.SchemaVersion != "1.0") throw new InvalidOperationException("Regression history schemaVersion must equal '1.0'.");
-        if (document.Subject.Repository != "simplexidev/codex-toolkit") throw new InvalidOperationException("Regression history has an invalid subject.");
+        if (document.Subject.Repository is not ("simplexidev/sdeveng" or "simplexidev/codex-toolkit")) throw new InvalidOperationException("Regression history has an invalid subject.");
         if (!document.Provenance.Sanitized) throw new InvalidOperationException("Regression history must be sanitized.");
         foreach (var item in document.Gates.Concat(document.Deltas.Select(x => new RegressionGate(x.Metric, x.Category, 0, "neutral", 0, true, x.Status))))
             if (!Categories.Contains(item.Category)) throw new InvalidOperationException($"Unsupported regression category: {item.Category}.");
