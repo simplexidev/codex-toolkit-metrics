@@ -33,16 +33,16 @@
       "comparison": "OPTIMIZED",
       "customization": "OPTIMIZED-or-NEW",
       "skillPaths": [
-        "../../sdeveng/plugins/codex-toolkit/skills/run-dotnet-tests",
-        "../../sdeveng/plugins/codex-toolkit/skills/write-dotnet-tests",
-        "../../sdeveng/plugins/codex-toolkit/skills/dotnet-test-quality",
-        "../../sdeveng/plugins/codex-toolkit/skills/dotnet-coverage",
-        "../../sdeveng/plugins/codex-toolkit/skills/diagnose-build",
-        "../../sdeveng/plugins/codex-toolkit/skills/optimize-build",
-        "../../sdeveng/plugins/codex-toolkit/skills/diagnose-dotnet",
-        "../../sdeveng/plugins/codex-toolkit/skills/investigate-dotnet-performance",
-        "../../sdeveng/plugins/codex-toolkit/skills/ci-triage",
-        "../../sdeveng/plugins/codex-toolkit/skills/repo-health"
+        "../../sdeveng/plugins/sdeveng/skills/run-dotnet-tests",
+        "../../sdeveng/plugins/sdeveng/skills/write-dotnet-tests",
+        "../../sdeveng/plugins/sdeveng/skills/dotnet-test-quality",
+        "../../sdeveng/plugins/sdeveng/skills/dotnet-coverage",
+        "../../sdeveng/plugins/sdeveng/skills/diagnose-build",
+        "../../sdeveng/plugins/sdeveng/skills/optimize-build",
+        "../../sdeveng/plugins/sdeveng/skills/diagnose-dotnet",
+        "../../sdeveng/plugins/sdeveng/skills/investigate-dotnet-performance",
+        "../../sdeveng/plugins/sdeveng/skills/ci-triage",
+        "../../sdeveng/plugins/sdeveng/skills/repo-health"
       ],
       "agentPaths": [
         "../../sdeveng/agents/reviewer.toml"
