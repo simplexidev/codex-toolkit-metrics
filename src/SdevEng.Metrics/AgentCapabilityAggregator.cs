@@ -52,7 +52,7 @@ public static class AgentCapabilityAggregator
         var document = new PublicDocument(
             "1.0",
             generatedAt,
-            new Subject("simplexidev/codex-toolkit", toolkitRevision.ToLowerInvariant()),
+            new Subject("simplexidev/sdeveng", toolkitRevision.ToLowerInvariant()),
             new ScenarioCounts(scenarios.Length,
                 scenarios.Count(group => group.All(record => record.Quality.FinalQualityGate == GateOutcome.Pass))),
             metrics,

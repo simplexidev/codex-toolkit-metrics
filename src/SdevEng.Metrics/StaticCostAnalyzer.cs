@@ -85,7 +85,7 @@ public static partial class StaticCostAnalyzer
     public static StaticCostReport Analyze(string toolkitRoot, string? revision = null)
     {
         var root = Path.GetFullPath(toolkitRoot);
-        var skillsRoot = Path.Combine(root, "plugins", "codex-toolkit", "skills");
+        var skillsRoot = Path.Combine(root, "plugins", "sdeveng", "skills");
         var agentsRoot = Path.Combine(root, "agents");
         if (!Directory.Exists(skillsRoot)) throw new InvalidOperationException("Toolkit skills directory was not found.");
         if (!Directory.Exists(agentsRoot)) throw new InvalidOperationException("Toolkit agents directory was not found.");
@@ -104,7 +104,7 @@ public static partial class StaticCostAnalyzer
         return new StaticCostReport
         {
             SchemaVersion = StaticCostReport.CurrentSchemaVersion,
-            Subject = "simplexidev/codex-toolkit",
+            Subject = "simplexidev/sdeveng",
             Revision = revision ?? ReadRevision(root),
             Tokenizer = TokenMethod,
             Skills = skills,

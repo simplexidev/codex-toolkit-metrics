@@ -20,6 +20,7 @@ public sealed class PreOptimizationBaselineAggregatorTests
                 DateTimeOffset.Parse("2026-09-22T00:00:00Z"));
             var document = JsonNode.Parse(json)!;
 
+            Assert.Equal("simplexidev/sdeveng", document["subject"]!["repository"]!.GetValue<string>());
             Assert.Equal("reviewed", document["provenance"]!["approval"]!.GetValue<string>());
             Assert.Equal(1, document["provenance"]!["sourceRuns"]!.GetValue<int>());
             Assert.Contains(document["metrics"]!.AsArray(), item =>

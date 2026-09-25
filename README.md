@@ -1,13 +1,15 @@
 # SimplexiDev Engineering Toolkit Metrics
 
 Evaluation, measurement, calibration, sanitized metrics history, and dashboard source for
-[`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit) on the
-`develop/v3.0.0` product line.
+`simplexidev/sdeveng` on the `develop/v3.0.0` product line. The product is currently
+served from the legacy [`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit)
+repository until the repository-rename phase.
 
 This repository treats SimplexiDev Engineering Toolkit as the subject under test. It may run the toolkit and
 consume its stable structured outputs, but it is not a plugin and is not a runtime
 dependency. Human-facing methodology and usage documentation belongs in
-[`simplexidev/codex-toolkit-docs`](https://github.com/simplexidev/codex-toolkit-docs).
+`simplexidev/sdeveng-docs` (currently served from the legacy
+[`codex-toolkit-docs`](https://github.com/simplexidev/codex-toolkit-docs) location).
 
 ## Repository layout
 
@@ -51,7 +53,7 @@ dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json
 dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
 dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
 dotnet run --project src/SdevEng.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
-dotnet run --project src/SdevEng.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../codex-toolkit/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
+dotnet run --project src/SdevEng.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../sdeveng/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
@@ -91,7 +93,7 @@ dotnet run --project src/SdevEng.Metrics -- aggregate-agent-capability \
   data/private/agent-capability-v1-evidence scenarios/agent-recommendations-v1.json \
   data/public/agent-capability-evaluation.json <toolkit-sha>
 dotnet run --project src/SdevEng.Metrics -- validate-agent-candidates \
-  ../codex-toolkit scenarios/agent-capability-evaluation-v1.json \
+  ../sdeveng scenarios/agent-capability-evaluation-v1.json \
   scenarios/agent-recommendations-v1.json
 ```
 
@@ -130,8 +132,8 @@ model tokenizer is available in the keyless evaluator; every such value is label
 `estimated` with the method.
 
 ```console
-dotnet run --project src/SdevEng.Metrics -- measure-static ../codex-toolkit
-dotnet run --project src/SdevEng.Metrics -- measure-static ../codex-toolkit \
+dotnet run --project src/SdevEng.Metrics -- measure-static ../sdeveng
+dotnet run --project src/SdevEng.Metrics -- measure-static ../sdeveng \
   --output /private/path/static-report.json \
   --public-output data/public/static-cost-routing.json
 ```
@@ -176,5 +178,6 @@ dotnet run --project src/SdevEng.Metrics -- validate-plan scenarios/routing-dele
 ```
 
 The GitHub Actions Pages deployment publishes the generated, sanitized artifact at
-<https://simplexidev.github.io/codex-toolkit-metrics/>. Dashboard code uses only relative
-paths so the site works beneath the `/codex-toolkit-metrics/` project base.
+the future <https://simplexidev.github.io/sdeveng-metrics-dashboard/> site (currently
+<https://simplexidev.github.io/codex-toolkit-metrics/>). Dashboard code uses only relative
+paths so the site works beneath either project base during migration.

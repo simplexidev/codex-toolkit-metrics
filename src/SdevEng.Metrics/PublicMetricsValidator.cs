@@ -6,6 +6,11 @@ namespace SdevEng.Metrics;
 
 public static class PublicMetricsValidator
 {
+    private static readonly HashSet<string> SupportedSubjectRepositories = new(StringComparer.Ordinal)
+    {
+        "simplexidev/sdeveng",
+        "simplexidev/codex-toolkit" // v2 records retain their original repository provenance.
+    };
     private const long MaximumPublicFileBytes = 1_000_000;
 
     private static readonly HashSet<string> SensitivePropertyNames = new(StringComparer.OrdinalIgnoreCase)
@@ -73,7 +78,7 @@ public static class PublicMetricsValidator
         if (RequireObject(root, "subject", errors) is { } subject)
         {
             RequireString(subject, "repository", errors,
-                value => value == "simplexidev/codex-toolkit", "must identify simplexidev/codex-toolkit");
+                value => SupportedSubjectRepositories.Contains(value), "must identify simplexidev/sdeveng or legacy simplexidev/codex-toolkit");
             RequireString(subject, "revision", errors,
                 value => value.Length is >= 7 and <= 64 && value.All(Uri.IsHexDigit),
                 "must be a 7-64 character hexadecimal revision");

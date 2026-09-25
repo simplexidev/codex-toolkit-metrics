@@ -39,6 +39,7 @@ public sealed class AgentCapabilityAggregatorTests
                 DateTimeOffset.Parse("2026-09-23T00:00:00Z"));
             var document = JsonNode.Parse(json)!;
 
+            Assert.Equal("simplexidev/sdeveng", document["subject"]!["repository"]!.GetValue<string>());
             Assert.Equal("reviewed", document["provenance"]!["approval"]!.GetValue<string>());
             Assert.Contains(document["metrics"]!.AsArray(), metric =>
                 metric!["name"]!.GetValue<string>() == "agent-test-specialist-insufficient-evidence");

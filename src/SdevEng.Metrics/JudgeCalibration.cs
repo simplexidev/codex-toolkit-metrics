@@ -161,7 +161,7 @@ public sealed class JudgeCalibration(IJevEvaluationClient jevClient, IEvaluation
         {
             schemaVersion = "1.0",
             generatedAt = report.GeneratedAt,
-            subject = new { repository = "simplexidev/codex-toolkit", revision = toolkitRevision },
+            subject = new { repository = "simplexidev/sdeveng", revision = toolkitRevision },
             scenarios = new { total = report.Observations.Count, passed = resolved.Count(item => item.JevPass == item.ExpectedPass) },
             metrics,
             provenance = new { sourceRuns = report.Observations.Count, sanitized = true, approval = "reviewed" }

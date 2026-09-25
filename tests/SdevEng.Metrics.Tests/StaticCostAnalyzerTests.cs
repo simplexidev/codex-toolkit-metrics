@@ -9,6 +9,7 @@ public sealed class StaticCostAnalyzerTests
 
         var report = StaticCostAnalyzer.Analyze(fixture.Root, "abcdef1");
 
+        Assert.Equal("simplexidev/sdeveng", report.Subject);
         Assert.Equal(2, report.Summary.SkillCount);
         Assert.Equal(1, report.Summary.AgentCount);
         Assert.Equal(1, report.Summary.RoutingPairs);
@@ -58,7 +59,7 @@ public sealed class StaticCostAnalyzerTests
 
         private void Skill(string name, string description, string body, string? reference)
         {
-            var directory = Path.Combine(Root, "plugins", "codex-toolkit", "skills", name);
+            var directory = Path.Combine(Root, "plugins", "sdeveng", "skills", name);
             Directory.CreateDirectory(directory);
             File.WriteAllText(Path.Combine(directory, "SKILL.md"), $"---\nname: {name}\ndescription: {description}\n---\n\n# {name}\n\n{body}\n");
             if (reference is null) return;

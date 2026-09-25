@@ -75,7 +75,7 @@ public static class V2AcceptanceAggregator
 
         var document = new PublicAcceptanceDocument(
             "1.0", generatedAt,
-            new PublicAcceptanceSubject("simplexidev/codex-toolkit", toolkitRevision.ToLowerInvariant()),
+            new PublicAcceptanceSubject("simplexidev/sdeveng", toolkitRevision.ToLowerInvariant()),
             new PublicAcceptanceScenarios(scenarios.Length, passed), metrics,
             new PublicAcceptanceProvenance(records.Length, true, "reviewed"));
         return JsonSerializer.Serialize(document, EvaluationRecordJson.Options);
@@ -128,7 +128,8 @@ public static class V2AcceptanceAggregator
 
     private static void ValidateBaseline(JsonElement root, AcceptanceBaseline expected)
     {
-        if (root.GetProperty("schemaVersion").GetString() != "1.0" || root.GetProperty("subject").GetProperty("repository").GetString() != "simplexidev/codex-toolkit" || !string.Equals(root.GetProperty("subject").GetProperty("revision").GetString(), expected.Subject.Sha, StringComparison.OrdinalIgnoreCase) || root.GetProperty("provenance").GetProperty("approval").GetString() != expected.Approval) throw new InvalidOperationException("Baseline does not match the acceptance plan's reviewed schema, subject revision, and approval lineage.");
+        var repository = root.GetProperty("subject").GetProperty("repository").GetString();
+        if (root.GetProperty("schemaVersion").GetString() != "1.0" || repository is not ("simplexidev/sdeveng" or "simplexidev/codex-toolkit") || !string.Equals(root.GetProperty("subject").GetProperty("revision").GetString(), expected.Subject.Sha, StringComparison.OrdinalIgnoreCase) || root.GetProperty("provenance").GetProperty("approval").GetString() != expected.Approval) throw new InvalidOperationException("Baseline does not match the acceptance plan's reviewed schema, subject revision, and approval lineage.");
     }
 
     private static decimal Baseline(IReadOnlyDictionary<string, decimal> metrics, string name) =>
