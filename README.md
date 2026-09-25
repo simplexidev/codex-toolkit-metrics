@@ -15,14 +15,14 @@ dependency. Human-facing methodology and usage documentation belongs in
 - `tests/` — keyless tests and synthetic fixtures.
 - `scenarios/` — versioned scenario definitions without private prompts or source.
 - `schemas/` — stable schemas for committed and published data.
-- `../sdeveng-metrics-data/public/` — sibling repository for reviewed aggregates.
+- `sdeveng-metrics-data/public/` — explicit data input/output supplied to the publisher.
 - `data/private/` — ignored local raw-run staging only; never commit its contents.
-- `../sdeveng-metrics-dashboard/` — sibling repository for static presentation and Pages.
+- `sdeveng-metrics-dashboard/` — explicit dashboard source supplied to the publisher.
 
 Raw prompts, responses, transcripts, private source, and logs must remain local or in
 short-lived CI artifacts. Only reviewed aggregates accepted by
 [`schemas/public-metrics-v1.schema.json`](schemas/public-metrics-v1.schema.json) may be
-committed or published. The data repository's `public/publication-manifest.json` is the explicit allowlist;
+committed or published. The data repository's `public/publication-manifest.json` (schema `1.0`) is the explicit allowlist and dashboard data contract;
 the publisher rejects unlisted JSON, raw fields, logs, secret-like content, local absolute
 paths, and malformed aggregates before creating the Pages artifact.
 
