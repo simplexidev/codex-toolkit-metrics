@@ -16,10 +16,10 @@
     "comparison": "OPTIMIZED",
     "customization": "OPTIMIZED-or-NEW",
     "skillPaths": [
-      "../../codex-toolkit/plugins/sdeveng/skills/benchmark",
-      "../../codex-toolkit/plugins/sdeveng/skills/dotnet-verify"
+      "../../sdeveng/plugins/sdeveng/skills/benchmark",
+      "../../sdeveng/plugins/sdeveng/skills/dotnet-verify"
     ],
-    "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"]
+    "agentPaths": ["../../sdeveng/agents/reviewer.toml"]
   }],
   "scenarios": [
     {

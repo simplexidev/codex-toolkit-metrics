@@ -1,15 +1,13 @@
-# SimplexiDev Engineering Toolkit Metrics
+# SimplexiDev Engineering Toolkit Metrics Tooling
 
-Evaluation, measurement, calibration, sanitized metrics history, and dashboard source for
-`simplexidev/sdeveng` on the `develop/v3.0.0` product line. The product is currently
-served from the legacy [`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit)
-repository until the repository-rename phase.
+Evaluation, measurement, calibration, schemas, and publication tooling for
+[`simplexidev/sdeveng`](https://github.com/simplexidev/sdeveng) on the
+`develop/v3.0.0` product line.
 
 This repository treats SimplexiDev Engineering Toolkit as the subject under test. It may run the toolkit and
 consume its stable structured outputs, but it is not a plugin and is not a runtime
 dependency. Human-facing methodology and usage documentation belongs in
-`simplexidev/sdeveng-docs` (currently served from the legacy
-[`codex-toolkit-docs`](https://github.com/simplexidev/codex-toolkit-docs) location).
+[`simplexidev/sdeveng-docs`](https://github.com/simplexidev/sdeveng-docs).
 
 ## Repository layout
 
@@ -17,14 +15,14 @@ dependency. Human-facing methodology and usage documentation belongs in
 - `tests/` — keyless tests and synthetic fixtures.
 - `scenarios/` — versioned scenario definitions without private prompts or source.
 - `schemas/` — stable schemas for committed and published data.
-- `data/public/` — reviewed, sanitized aggregate history suitable for publication.
-- `data/private/` — ignored local raw runs; never commit this directory's contents.
-- `dashboard/` — dependency-free static dashboard source, published through GitHub Pages.
+- `../sdeveng-metrics-data/public/` — sibling repository for reviewed aggregates.
+- `data/private/` — ignored local raw-run staging only; never commit its contents.
+- `../sdeveng-metrics-dashboard/` — sibling repository for static presentation and Pages.
 
 Raw prompts, responses, transcripts, private source, and logs must remain local or in
 short-lived CI artifacts. Only reviewed aggregates accepted by
 [`schemas/public-metrics-v1.schema.json`](schemas/public-metrics-v1.schema.json) may be
-committed or published. `data/public/publication-manifest.json` is the explicit allowlist;
+committed or published. The data repository's `public/publication-manifest.json` is the explicit allowlist;
 the publisher rejects unlisted JSON, raw fields, logs, secret-like content, local absolute
 paths, and malformed aggregates before creating the Pages artifact.
 
@@ -52,8 +50,8 @@ dotnet run --project src/SdevEng.Metrics -- validate-plan scenarios/runner-smoke
 dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json
 dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
 dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
-dotnet run --project src/SdevEng.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
-dotnet run --project src/SdevEng.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../sdeveng/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
+dotnet run --project src/SdevEng.Metrics -- aggregate-baseline /private/evaluation/path ../sdeveng-metrics-data/public/pre-optimization-baseline.json <toolkit-sha>
+dotnet run --project src/SdevEng.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json ../sdeveng-metrics-data/public/pre-optimization-baseline.json ../sdeveng/config/capabilities.json ../sdeveng-metrics-data/public/v2-acceptance.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
@@ -91,7 +89,7 @@ evidence visible as coverage gaps rather than inferred zero-cost success.
 ```console
 dotnet run --project src/SdevEng.Metrics -- aggregate-agent-capability \
   data/private/agent-capability-v1-evidence scenarios/agent-recommendations-v1.json \
-  data/public/agent-capability-evaluation.json <toolkit-sha>
+  ../sdeveng-metrics-data/public/agent-capability-evaluation.json <toolkit-sha>
 dotnet run --project src/SdevEng.Metrics -- validate-agent-candidates \
   ../sdeveng scenarios/agent-capability-evaluation-v1.json \
   scenarios/agent-recommendations-v1.json
@@ -135,7 +133,7 @@ model tokenizer is available in the keyless evaluator; every such value is label
 dotnet run --project src/SdevEng.Metrics -- measure-static ../sdeveng
 dotnet run --project src/SdevEng.Metrics -- measure-static ../sdeveng \
   --output /private/path/static-report.json \
-  --public-output data/public/static-cost-routing.json
+  --public-output ../sdeveng-metrics-data/public/static-cost-routing.json
 ```
 
 Treat the detailed report as local evaluator output. `--public-output` emits only
@@ -162,7 +160,7 @@ manual or scheduled.
 
 ```console
 dotnet run --project src/SdevEng.Metrics -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
-dotnet run --project src/SdevEng.Metrics -- validate-history data/public/regression-history.json
+dotnet run --project src/SdevEng.Metrics -- validate-history ../sdeveng-metrics-data/public/regression-history.json
 ```
 
 The repository requires the .NET SDK selected by `global.json`.
@@ -171,13 +169,12 @@ The repository requires the .NET SDK selected by `global.json`.
 dotnet restore SdevEng.Metrics.slnx
 dotnet test SdevEng.Metrics.slnx
 dotnet run --project src/SdevEng.Metrics -- validate-evaluation tests/SdevEng.Metrics.Tests/Fixtures/evaluation-valid-v1.json
-dotnet run --project src/SdevEng.Metrics -- validate-public data/public/example-summary.json
-dotnet run --project src/SdevEng.Metrics -- dashboard-check dashboard
-dotnet run --project src/SdevEng.Metrics -- publish-pages dashboard data/public _site
+dotnet run --project src/SdevEng.Metrics -- validate-public ../sdeveng-metrics-data/public/example-summary.json
+dotnet run --project src/SdevEng.Metrics -- dashboard-check ../sdeveng-metrics-dashboard
+dotnet run --project src/SdevEng.Metrics -- publish-pages ../sdeveng-metrics-dashboard ../sdeveng-metrics-data/public _site
 dotnet run --project src/SdevEng.Metrics -- validate-plan scenarios/routing-delegation-v1.json
 ```
 
-The GitHub Actions Pages deployment publishes the generated, sanitized artifact at
-the future <https://simplexidev.github.io/sdeveng-metrics-dashboard/> site (currently
-<https://simplexidev.github.io/codex-toolkit-metrics/>). Dashboard code uses only relative
-paths so the site works beneath either project base during migration.
+The dashboard repository publishes the generated, sanitized artifact at
+<https://simplexidev.github.io/sdeveng-metrics-dashboard/>. Dashboard code uses only
+project-relative paths.

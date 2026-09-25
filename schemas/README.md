@@ -24,6 +24,6 @@ represented with `kind: "unavailable"`, `value: null`, and a method explaining w
 The v1 dashboard aggregate schema is independent from the evaluation-record family. It
 remains supported until a separately versioned public aggregation phase replaces it.
 The detailed keyless analyzer output conforms to `static-cost-report-v1.schema.json`;
-only its sanitized aggregate projection belongs under `data/public/`.
+only its sanitized aggregate projection belongs in `sdeveng-metrics-data/public/`.
 The `judge-calibration-v1` schema bounds paired live calibration to 50 labeled examples;
 the example texts and resulting observation report remain private.

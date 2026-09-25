@@ -1,9 +1,0 @@
-{
-  "schemaVersion": "1.0",
-  "artifacts": [
-    "static-cost-routing.json",
-    "pre-optimization-baseline.json",
-    "agent-capability-evaluation.json",
-    "static-cost-routing-v2.json"
-  ]
-}

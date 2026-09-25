@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/public-metrics-v1.schema.json",
+  "$id": "https://raw.githubusercontent.com/simplexidev/sdeveng-metrics-tooling/develop/v3.0.0/schemas/public-metrics-v1.schema.json",
   "title": "SimplexiDev Engineering Toolkit sanitized public metrics",
   "type": "object",
   "additionalProperties": false,
