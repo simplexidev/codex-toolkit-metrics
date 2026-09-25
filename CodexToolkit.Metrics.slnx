@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="src/CodexToolkit.Metrics/CodexToolkit.Metrics.csproj" />
-  <Project Path="tests/CodexToolkit.Metrics.Tests/CodexToolkit.Metrics.Tests.csproj" />
-</Solution>

@@ -6,7 +6,7 @@ generated `_site/` directory locally to preview it; opening the HTML file direct
 prevent JSON loading because of browser origin rules.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- publish-pages dashboard data/public _site
+dotnet run --project src/SdevEng.Metrics -- publish-pages dashboard data/public _site
 ```
 
 All browser paths are project-relative for the Pages target at

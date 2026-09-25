@@ -1,10 +1,10 @@
-# Codex Toolkit Metrics
+# SimplexiDev Engineering Toolkit Metrics
 
 Evaluation, measurement, calibration, sanitized metrics history, and dashboard source for
 [`simplexidev/codex-toolkit`](https://github.com/simplexidev/codex-toolkit) on the
 `develop/v3.0.0` product line.
 
-This repository treats Codex Toolkit as the subject under test. It may run the toolkit and
+This repository treats SimplexiDev Engineering Toolkit as the subject under test. It may run the toolkit and
 consume its stable structured outputs, but it is not a plugin and is not a runtime
 dependency. Human-facing methodology and usage documentation belongs in
 [`simplexidev/codex-toolkit-docs`](https://github.com/simplexidev/codex-toolkit-docs).
@@ -46,12 +46,12 @@ Plans conform to
 example; replace its provenance placeholders before recording a real run.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/runner-smoke-v1.json
-dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json
-dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
-dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
-dotnet run --project src/CodexToolkit.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
-dotnet run --project src/CodexToolkit.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../codex-toolkit/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
+dotnet run --project src/SdevEng.Metrics -- validate-plan scenarios/runner-smoke-v1.json
+dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json
+dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
+dotnet run --project src/SdevEng.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
+dotnet run --project src/SdevEng.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
+dotnet run --project src/SdevEng.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../codex-toolkit/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath
@@ -87,10 +87,10 @@ files/context, build/test classification, and JEV false-exclusion or avoided-con
 evidence visible as coverage gaps rather than inferred zero-cost success.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- aggregate-agent-capability \
+dotnet run --project src/SdevEng.Metrics -- aggregate-agent-capability \
   data/private/agent-capability-v1-evidence scenarios/agent-recommendations-v1.json \
   data/public/agent-capability-evaluation.json <toolkit-sha>
-dotnet run --project src/CodexToolkit.Metrics -- validate-agent-candidates \
+dotnet run --project src/SdevEng.Metrics -- validate-agent-candidates \
   ../codex-toolkit scenarios/agent-capability-evaluation-v1.json \
   scenarios/agent-recommendations-v1.json
 ```
@@ -111,7 +111,7 @@ contains only validated aggregate counts and rates. A confidence recommendation 
 emitted only when at least three observed examples achieve 90% expected-outcome accuracy.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- calibrate-judges \
+dotnet run --project src/SdevEng.Metrics -- calibrate-judges \
   scenarios/judge-calibration-v1.json data/private/calibration/report.json --live
 ```
 
@@ -130,8 +130,8 @@ model tokenizer is available in the keyless evaluator; every such value is label
 `estimated` with the method.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- measure-static ../codex-toolkit
-dotnet run --project src/CodexToolkit.Metrics -- measure-static ../codex-toolkit \
+dotnet run --project src/SdevEng.Metrics -- measure-static ../codex-toolkit
+dotnet run --project src/SdevEng.Metrics -- measure-static ../codex-toolkit \
   --output /private/path/static-report.json \
   --public-output data/public/static-cost-routing.json
 ```
@@ -159,20 +159,20 @@ live matrix. An empty diff intentionally selects the complete suite; full matric
 manual or scheduled.
 
 ```console
-dotnet run --project src/CodexToolkit.Metrics -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
-dotnet run --project src/CodexToolkit.Metrics -- validate-history data/public/regression-history.json
+dotnet run --project src/SdevEng.Metrics -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
+dotnet run --project src/SdevEng.Metrics -- validate-history data/public/regression-history.json
 ```
 
 The repository requires the .NET SDK selected by `global.json`.
 
 ```console
-dotnet restore CodexToolkit.Metrics.slnx
-dotnet test CodexToolkit.Metrics.slnx
-dotnet run --project src/CodexToolkit.Metrics -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
-dotnet run --project src/CodexToolkit.Metrics -- validate-public data/public/example-summary.json
-dotnet run --project src/CodexToolkit.Metrics -- dashboard-check dashboard
-dotnet run --project src/CodexToolkit.Metrics -- publish-pages dashboard data/public _site
-dotnet run --project src/CodexToolkit.Metrics -- validate-plan scenarios/routing-delegation-v1.json
+dotnet restore SdevEng.Metrics.slnx
+dotnet test SdevEng.Metrics.slnx
+dotnet run --project src/SdevEng.Metrics -- validate-evaluation tests/SdevEng.Metrics.Tests/Fixtures/evaluation-valid-v1.json
+dotnet run --project src/SdevEng.Metrics -- validate-public data/public/example-summary.json
+dotnet run --project src/SdevEng.Metrics -- dashboard-check dashboard
+dotnet run --project src/SdevEng.Metrics -- publish-pages dashboard data/public _site
+dotnet run --project src/SdevEng.Metrics -- validate-plan scenarios/routing-delegation-v1.json
 ```
 
 The GitHub Actions Pages deployment publishes the generated, sanitized artifact at

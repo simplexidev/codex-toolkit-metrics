@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/SdevEng.Metrics/SdevEng.Metrics.csproj" />
+  <Project Path="tests/SdevEng.Metrics.Tests/SdevEng.Metrics.Tests.csproj" />
+</Solution>

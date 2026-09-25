@@ -24,12 +24,12 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-      - run: dotnet restore CodexToolkit.Metrics.slnx
-      - run: dotnet build CodexToolkit.Metrics.slnx --no-restore
-      - run: dotnet test CodexToolkit.Metrics.slnx --no-build --logger trx --results-directory TestResults
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-evaluation tests/CodexToolkit.Metrics.Tests/Fixtures/evaluation-valid-v1.json
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-calibration scenarios/judge-calibration-v1.json
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- validate-public data/public/pre-optimization-baseline.json
+      - run: dotnet restore SdevEng.Metrics.slnx
+      - run: dotnet build SdevEng.Metrics.slnx --no-restore
+      - run: dotnet test SdevEng.Metrics.slnx --no-build --logger trx --results-directory TestResults
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- validate-evaluation tests/SdevEng.Metrics.Tests/Fixtures/evaluation-valid-v1.json
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- validate-calibration scenarios/judge-calibration-v1.json
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- validate-public data/public/pre-optimization-baseline.json
       - name: Validate affected capability selection
         if: matrix.os == 'ubuntu-latest'
         shell: bash
@@ -37,10 +37,10 @@ jobs:
           base="${{ github.event.pull_request.base.sha || github.event.before }}"
           git fetch --no-tags --depth=1 origin "$base"
           git diff --name-only "$base" HEAD | jq -R -s -c 'split("\n") | map(select(length > 0)) | {schemaVersion:"1.0", paths:.}' > changed-paths.json
-          dotnet run --project src/CodexToolkit.Metrics --no-build -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- dashboard-check dashboard
-      - run: dotnet run --project src/CodexToolkit.Metrics --no-build -- publish-pages dashboard data/public _pages-ci
-      - run: dotnet format CodexToolkit.Metrics.slnx --no-restore --verify-no-changes
+          dotnet run --project src/SdevEng.Metrics --no-build -- select-affected scenarios/agent-capability-evaluation-v1.json changed-paths.json
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- dashboard-check dashboard
+      - run: dotnet run --project src/SdevEng.Metrics --no-build -- publish-pages dashboard data/public _pages-ci
+      - run: dotnet format SdevEng.Metrics.slnx --no-restore --verify-no-changes
       - run: git diff --check
       - uses: actions/upload-artifact@v4
         if: always()

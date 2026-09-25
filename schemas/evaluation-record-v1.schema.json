@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://simplexidev.github.io/codex-toolkit-metrics/schemas/evaluation-record-v1.schema.json",
-  "title": "Codex Toolkit evaluation record",
+  "title": "SimplexiDev Engineering Toolkit evaluation record",
   "description": "A sanitized, provenance-aware evaluation record. All numeric metrics use the numericMetric definition.",
   "type": "object",
   "additionalProperties": false,
