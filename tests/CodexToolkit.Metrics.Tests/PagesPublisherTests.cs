@@ -29,6 +29,16 @@ public sealed class PagesPublisherTests
         Assert.False(Directory.Exists(fixture.Output));
     }
 
+    [Fact]
+    public async Task RejectsSyntheticArtifactFromProductionPublication()
+    {
+        using var fixture = new PublicationFixture();
+        await File.WriteAllTextAsync(Path.Combine(fixture.PublicData, "approved.json"), File.ReadAllText(Path.Combine(fixture.PublicData, "approved.json")).Replace("\"reviewed\"", "\"synthetic\"", StringComparison.Ordinal));
+        var result = await PagesPublisher.PublishAsync(fixture.Dashboard, fixture.PublicData, fixture.Output);
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, error => error.Contains("reviewed provenance", StringComparison.Ordinal));
+    }
+
     private sealed class PublicationFixture : IDisposable
     {
         public PublicationFixture()
@@ -50,7 +60,7 @@ public sealed class PagesPublisherTests
                   "subject": { "repository": "simplexidev/codex-toolkit", "revision": "0123456789abcdef0123456789abcdef01234567" },
                   "scenarios": { "total": 1, "passed": 1 },
                   "metrics": [{ "name": "fixture", "value": 1, "unit": "count", "direction": "neutral" }],
-                  "provenance": { "sourceRuns": 1, "sanitized": true, "approval": "synthetic" }
+                  "provenance": { "sourceRuns": 1, "sanitized": true, "approval": "reviewed" }
                 }
                 """);
         }

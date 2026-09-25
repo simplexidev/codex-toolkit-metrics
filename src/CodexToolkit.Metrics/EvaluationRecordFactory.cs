@@ -29,7 +29,7 @@ public static class EvaluationRecordFactory
                 Skill = Names(arm.SkillPaths),
                 Agent = arm.Role ?? Names(arm.AgentPaths),
                 Arm = arm.Id,
-                Executor = new ExecutorIdentity { Model = plan.Executor.Model, Reasoning = plan.Executor.Reasoning },
+                Executor = new ExecutorIdentity { Provider = plan.Executor.Provider, Model = plan.Executor.Model, Reasoning = plan.Executor.Reasoning },
                 Judge = new JudgeIdentity
                 {
                     Method = plan.Judge.Path switch

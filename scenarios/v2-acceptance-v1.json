@@ -10,10 +10,18 @@
     "reasoning": "low",
     "version": "codex-cli-0.155.1"
   },
-  "judge": { "path": "deterministic" },
+  "judge": {
+    "path": "deterministic"
+  },
   "provenance": {
-    "toolkit": { "sha": "5a4b35e5ccd96392e91a11c4048c4497cdcee655", "version": "v2-acceptance-candidate" },
-    "metrics": { "sha": "f7e7d540c5fcb251749b0aa5525f2896cc2124d0", "version": "full-v2-acceptance-phase" },
+    "toolkit": {
+      "sha": "cf26b48bc0fd658655f6e1d224ac23175453d4da",
+      "version": "v2-acceptance-candidate"
+    },
+    "metrics": {
+      "sha": "f7e7d540c5fcb251749b0aa5525f2896cc2124d0",
+      "version": "full-v2-acceptance-phase"
+    },
     "upstream": {
       "sha": "4ed5f7c121da8dd31af31a35cef05070948c6556",
       "path": "dotnet/skills"
@@ -36,7 +44,9 @@
         "../../codex-toolkit/plugins/codex-toolkit/skills/ci-triage",
         "../../codex-toolkit/plugins/codex-toolkit/skills/repo-health"
       ],
-      "agentPaths": ["../../codex-toolkit/agents/reviewer.toml"],
+      "agentPaths": [
+        "../../codex-toolkit/agents/reviewer.toml"
+      ],
       "sandbox": "read-only",
       "contextIsolated": true
     }
@@ -44,105 +54,232 @@
   "scenarios": [
     {
       "id": "single-test",
-      "capability": "single-test",
+      "capability": "tests",
       "prompt": "Read-only task. Inspect the fixture and propose the exact command that runs only Add_combines_two_positive_values. End with the literal marker SCENARIO: single-test and include dotnet test plus a FullyQualifiedName filter. Do not modify files or run restore.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: single-test", "dotnet test", "FullyQualifiedName"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: single-test",
+          "dotnet test",
+          "FullyQualifiedName"
+        ]
+      }
     },
     {
       "id": "affected-tests",
-      "capability": "affected-tests",
+      "capability": "tests",
       "prompt": "Read-only task. Map the smallest test scope affected by a change to src/Calculator/Calculator.cs and give the command. End with SCENARIO: affected-tests and mention Calculator.Tests. Do not modify files or run restore.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: affected-tests", "Calculator.Tests"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: affected-tests",
+          "Calculator.Tests"
+        ]
+      }
     },
     {
       "id": "test-writing",
-      "capability": "test-writing",
+      "capability": "tests",
       "prompt": "Read-only task. Inspect Calculator and its tests, then specify one high-value missing test including expected behavior. End with SCENARIO: test-writing and mention DivideByZeroException. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: test-writing", "DivideByZeroException"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: test-writing",
+          "DivideByZeroException"
+        ]
+      }
     },
     {
       "id": "compiler-failure",
-      "capability": "compiler-build-failure",
+      "capability": "msbuild",
       "prompt": "Read-only task. Diagnose artifacts/compiler-error.txt, name the diagnostic and propose the narrowest verification command. End with SCENARIO: compiler-failure and mention CS0029. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: compiler-failure", "CS0029"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: compiler-failure",
+          "CS0029"
+        ]
+      }
     },
     {
       "id": "msbuild-failure",
-      "capability": "msbuild-failure",
+      "capability": "msbuild",
       "prompt": "Read-only task. Diagnose artifacts/msbuild-failure.txt, separate the symptom from the likely cause, and name the next evidence to collect. End with SCENARIO: msbuild-failure and mention MSB4018. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: msbuild-failure", "MSB4018"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: msbuild-failure",
+          "MSB4018"
+        ]
+      }
     },
     {
       "id": "slow-build",
-      "capability": "slow-build",
+      "capability": "benchmarks",
       "prompt": "Read-only task. Analyze artifacts/slow-build.txt, identify the dominant target, and propose a measurement-first next step. End with SCENARIO: slow-build and mention GeneratePackageGraph. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: slow-build", "GeneratePackageGraph"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: slow-build",
+          "GeneratePackageGraph"
+        ]
+      }
     },
     {
       "id": "coverage",
-      "capability": "coverage",
+      "capability": "tests",
       "prompt": "Read-only task. Interpret artifacts/coverage-summary.txt and prioritize one behavioral coverage gap without treating percentage alone as quality. End with SCENARIO: coverage and mention denominator. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: coverage", "denominator"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: coverage",
+          "denominator"
+        ]
+      }
     },
     {
       "id": "diagnostics-planning",
-      "capability": "diagnostics-planning",
+      "capability": "diagnostics",
       "prompt": "Read-only task. Based on the fixture, give a bounded diagnostic collection plan for intermittent divide failures, including a stop condition and privacy caution. End with SCENARIO: diagnostics-planning and mention trace. Do not collect diagnostics or modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: diagnostics-planning", "trace"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: diagnostics-planning",
+          "trace"
+        ]
+      }
     },
     {
       "id": "repo-mapping",
-      "capability": "repository-mapping",
+      "capability": "repo-navigation-impact",
       "prompt": "Read-only task. Map projects and dependency direction from Baseline.slnx and project files. End with SCENARIO: repo-mapping and state Calculator.Tests -> Calculator. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: repo-mapping", "Calculator.Tests -> Calculator"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: repo-mapping",
+          "Calculator.Tests -> Calculator"
+        ]
+      }
     },
     {
       "id": "log-analysis",
-      "capability": "log-analysis",
+      "capability": "diagnostics",
       "prompt": "Read-only task. Analyze artifacts/application.log, correlate the failing request, and state the supported cause without inventing facts. End with SCENARIO: log-analysis and mention request=beta. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: log-analysis", "request=beta"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: log-analysis",
+          "request=beta"
+        ]
+      }
     },
     {
       "id": "focused-review",
-      "capability": "focused-review",
+      "capability": "github-reviews",
       "prompt": "Read-only task. Review artifacts/focused-review.patch for behavior regressions with concrete evidence. End with SCENARIO: focused-review and mention silent success. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: focused-review", "silent success"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: focused-review",
+          "silent success"
+        ]
+      }
     },
     {
       "id": "git-github-ci",
-      "capability": "git-github-ci",
+      "capability": "ci",
       "prompt": "Read-only task. Inspect .github/workflows/ci.yml and identify one reproducibility risk plus a precise improvement. End with SCENARIO: git-github-ci and mention global.json. Do not modify files or contact GitHub.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: git-github-ci", "global.json"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: git-github-ci",
+          "global.json"
+        ]
+      }
     },
     {
       "id": "advanced-dotnet",
-      "capability": "advanced-dotnet",
+      "capability": "dotnet-csharp",
       "prompt": "Read-only task. Explain the correctness boundary for replacing Calculator.Divide with a native P/Invoke implementation: ABI facts, ownership, error behavior, and verification. End with SCENARIO: advanced-dotnet and mention LibraryImport. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: advanced-dotnet", "LibraryImport"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: advanced-dotnet",
+          "LibraryImport"
+        ]
+      }
     },
     {
       "id": "general-repository",
-      "capability": "general-repository",
+      "capability": "planning",
       "prompt": "Read-only task. Produce a concise risk-ranked next-work plan for this repository using only fixture evidence. End with SCENARIO: general-repository and mention verification. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: general-repository", "verification"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: general-repository",
+          "verification"
+        ]
+      }
     },
     {
       "id": "focused-review-agent",
-      "capability": "focused-review-agent",
+      "capability": "github-reviews",
       "prompt": "Read-only task. Perform an independent review of artifacts/focused-review.patch. If an appropriate custom reviewer is available, delegate this bounded review; otherwise review directly. Report concrete behavior findings, then end with SCENARIO: focused-review-agent and mention denominator == 0. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: focused-review-agent", "denominator == 0"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: focused-review-agent",
+          "denominator == 0"
+        ]
+      }
     },
     {
       "id": "ci-agent-boundary",
-      "capability": "agent-boundary",
+      "capability": "github-reviews",
       "prompt": "Read-only task. Inspect .github/workflows/ci.yml for reproducibility risk. Do not delegate this routine inspection. End with SCENARIO: ci-agent-boundary and mention global.json. Do not modify files or contact GitHub.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: ci-agent-boundary", "global.json"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: ci-agent-boundary",
+          "global.json"
+        ]
+      }
     },
     {
       "id": "general-repo-agent-boundary",
-      "capability": "agent-boundary",
+      "capability": "github-reviews",
       "prompt": "Read-only task. Summarize the repository's highest-evidence next action. Do not delegate this small task. End with SCENARIO: general-repo-agent-boundary and mention DivideByZeroException. Do not modify files.",
-      "expected": { "exitCode": 0, "outputKind": "text", "responseContains": ["SCENARIO: general-repo-agent-boundary", "DivideByZeroException"] }
+      "expected": {
+        "exitCode": 0,
+        "outputKind": "text",
+        "responseContains": [
+          "SCENARIO: general-repo-agent-boundary",
+          "DivideByZeroException"
+        ]
+      }
     }
-  ]
+  ],
+  "baseline": {
+    "subject": {
+      "sha": "771f6513b938aceca2f88c59cbd9a3bfbcb39ff9",
+      "version": "pre-v2-reviewed-baseline"
+    },
+    "approval": "reviewed"
+  }
 }

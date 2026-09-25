@@ -50,7 +50,7 @@ dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.j
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --reuse-baseline
 dotnet run --project src/CodexToolkit.Metrics -- run scenarios/runner-smoke-v1.json --raw-dir /private/evaluation/path
 dotnet run --project src/CodexToolkit.Metrics -- aggregate-baseline /private/evaluation/path data/public/pre-optimization-baseline.json <toolkit-sha>
-dotnet run --project src/CodexToolkit.Metrics -- aggregate-v2-acceptance /private/evaluation/path data/public/pre-optimization-baseline.json data/public/v2-acceptance.json <toolkit-sha>
+dotnet run --project src/CodexToolkit.Metrics -- aggregate-v2-acceptance /private/evaluation/path scenarios/v2-acceptance-v1.json data/public/pre-optimization-baseline.json ../codex-toolkit/config/capabilities.json data/public/v2-acceptance.json <toolkit-sha>
 ```
 
 Raw prompts, JSONL events, responses, failures, and per-trial records are written beneath

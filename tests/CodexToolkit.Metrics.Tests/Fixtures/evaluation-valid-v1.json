@@ -6,7 +6,7 @@
     "skill": "example-skill",
     "agent": null,
     "arm": "optimized-new",
-    "executor": { "model": "gpt-5", "reasoning": "medium" },
+    "executor": { "provider": "openai", "model": "gpt-5", "reasoning": "medium" },
     "judge": { "method": "hybrid", "model": "gpt-5" },
     "toolkit": { "sha": "0123456789abcdef0123456789abcdef01234567", "version": "2.0.0-preview.1" },
     "metrics": { "sha": "abcdef0123456789abcdef0123456789abcdef01", "version": "1.0.0" },

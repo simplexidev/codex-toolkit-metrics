@@ -125,6 +125,7 @@ function metricCard(name, metric) {
   if (metric?.kind) top.append(element("span", `kind kind-${metric.kind}`, metric.kind));
   card.append(top, element("strong", metric ? "metric-value" : "metric-value unavailable", formatMetric(metric)));
   card.append(element("p", "metric-detail", metric ? (metric.method || metric.direction.replaceAll("-", " ")) : "No approved aggregate has been published yet."));
+  if (metric?.source) card.append(element("p", "metric-source", `Source ${metric.source.revision.slice(0, 12)} · ${metric.source.approval}`));
   return card;
 }
 
@@ -160,7 +161,9 @@ function renderShell() {
 
 function renderHistory(container) {
   const chart = element("div", "history-chart");
-  const rates = snapshots.map(item => item.metrics.find(metric => metric.name === "scenario-pass-rate")?.value ?? null);
+  const latestSeries = snapshots.at(-1)?.compatibility?.series;
+  const comparable = snapshots.filter(item => latestSeries && item.compatibility?.series === latestSeries);
+  const rates = comparable.map(item => item.metrics.find(metric => metric.name === "scenario-pass-rate")?.value ?? null);
   if (rates.filter(value => value !== null).length > 1) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 600 150");
@@ -186,7 +189,8 @@ function renderHistory(container) {
   [...snapshots].reverse().forEach(item => {
     const row = element("tr");
     const rate = item.metrics.find(metric => metric.name === "scenario-pass-rate");
-    const previous = snapshots[snapshots.indexOf(item) - 1]?.metrics.find(metric => metric.name === "scenario-pass-rate");
+    const prior = snapshots.slice(0, snapshots.indexOf(item)).reverse().find(candidate => candidate.compatibility?.series && candidate.compatibility.series === item.compatibility?.series);
+    const previous = prior?.metrics.find(metric => metric.name === "scenario-pass-rate");
     const trend = previous && rate ? `${rate.value >= previous.value ? "↑" : "↓"} ${(rate.value - previous.value).toFixed(3)}` : "Baseline";
     [new Date(item.generatedAt).toLocaleDateString(), item.subject.revision.slice(0, 12), `${item.scenarios.passed}/${item.scenarios.total}`, formatMetric(rate), trend, item.provenance.approval]
       .forEach(value => row.append(element("td", "", value)));
@@ -248,7 +252,11 @@ fetch("./data/publication-manifest.json")
   }))))
   .then(data => {
     snapshots = data.sort((left, right) => new Date(left.generatedAt) - new Date(right.generatedAt));
-    for (const snapshot of snapshots) for (const metric of snapshot.metrics) latestMetrics.set(metric.name, metric);
+    for (const snapshot of snapshots) for (const metric of snapshot.metrics) {
+      // A metric may be compared only with a compatible prior snapshot.  Its
+      // provenance stays attached so a current card never obscures its source.
+      latestMetrics.set(metric.name, { ...metric, source: { revision: snapshot.subject.revision, approval: snapshot.provenance.approval, compatibility: snapshot.compatibility?.series || snapshot.subject.revision } });
+    }
     renderShell();
   })
   .catch(error => {

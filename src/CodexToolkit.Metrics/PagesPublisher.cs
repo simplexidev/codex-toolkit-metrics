@@ -42,6 +42,11 @@ public static class PagesPublisher
             var validation = await PublicMetricsValidator.ValidateFileAsync(
                 Path.Combine(publicDataDirectory, artifact), cancellationToken);
             errors.AddRange(validation.Errors.Select(error => $"{artifact}: {error}"));
+            await using var stream = File.OpenRead(Path.Combine(publicDataDirectory, artifact));
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+            if (!document.RootElement.TryGetProperty("provenance", out var provenance) ||
+                !provenance.TryGetProperty("approval", out var approval) || approval.GetString() != "reviewed")
+                errors.Add($"{artifact}: production publication requires reviewed provenance; synthetic artifacts belong in test fixtures.");
         }
 
         if (errors.Count > 0) return new ValidationResult(errors);
